@@ -4,6 +4,8 @@
 #include <iostream>
 #include <SDL2/SDL.h>
 
+#include "../include/piece.hpp"
+
 class Game {
 
 public:
@@ -11,10 +13,15 @@ public:
 
     void handleEvents();
     void update();
-    void render();
+    SDL_Texture* loadTexture(const char* filePath);
+    bool running();
+    void clear();
+    void present();
+    void render(Piece piece);
     void clean();
 
-    bool running();
+
+    
 
 private:
     bool isRunning;
