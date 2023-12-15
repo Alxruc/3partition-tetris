@@ -1,6 +1,6 @@
 CC = g++
 CFLAGS = -std=c++11 -Wall
-SDL_FLAGS = $(shell sdl2-config --cflags --libs)
+SDL_FLAGS = $(shell sdl2-config --cflags --libs) -lSDL2_image
 
 SRC_DIR = src
 OBJ_DIR = obj
@@ -23,3 +23,4 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 
 clean:
 	rm -rf $(OBJ_DIR) $(BIN_DIR)
+
