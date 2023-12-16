@@ -29,6 +29,14 @@ double Piece::getY() {
     return this->y;
 }
 
+int Piece::getH() {
+    return this->currentFrame.h;
+}
+
+int Piece::getW() {
+    return this->currentFrame.w;
+}
+
 int Piece::getRotation() {
     return this->rotation;
 }
@@ -43,4 +51,12 @@ SDL_Texture* Piece::getTexture() {
 
 SDL_Rect Piece::getCurrentFrame() {
     return this->currentFrame;
+}
+
+void Piece::setX(double newValue) {
+    this->x = newValue;
+}
+
+void Piece::setY(double newValue) {
+    this->y = newValue;
 }

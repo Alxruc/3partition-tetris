@@ -30,6 +30,8 @@ void Game::init(const char* title, int x, int y, int width, int height, bool ful
     else {
         isRunning = false;
     }
+    this->width = width;
+    this->height = height;
 }
 
 void Game::handleEvents() {
@@ -75,16 +77,14 @@ void Game::present() {
 void Game::render(Piece piece) {
     SDL_Rect src;
     SDL_Rect currFrame = piece.getCurrentFrame();
-    src.x = currFrame.x;
-    src.y = currFrame.y;
+    src.x = 0;
+    src.y = 0;
     src.w = currFrame.w;
     src.h = currFrame.h;
 
-    SDL_Rect dst;
+    SDL_Rect dst = src;
     dst.x = piece.getX();
     dst.y = piece.getY();
-    dst.w = 200;
-    dst.h = 50;
 
     SDL_RenderCopy(renderer, piece.getTexture(), &src, &dst);
 }
