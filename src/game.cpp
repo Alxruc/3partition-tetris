@@ -4,6 +4,8 @@
 
 #include "../include/game.hpp"
 
+const float FALLSPEED = 0.1;
+
 
 void Game::init(const char* title, int x, int y, int width, int height, bool fullscreen) {
     int flags = 0;
@@ -32,7 +34,21 @@ void Game::init(const char* title, int x, int y, int width, int height, bool ful
     }
     this->width = width;
     this->height = height;
+
+    
 }
+
+void Game::initFirstPiece(SDL_Texture* tex, int type) {
+    fallingPiece = Piece(width/2, 0, 0, type, tex);
+}
+
+Piece Game::getFalling() {
+    return this->fallingPiece;
+}
+
+std::vector<Piece> Game::getStationary() {
+    return this->stationaryPieces;
+};
 
 void Game::handleEvents() {
     SDL_Event event;
@@ -41,14 +57,50 @@ void Game::handleEvents() {
         case SDL_QUIT:
             isRunning = false;
             break;
+        case SDL_KEYDOWN:
+            switch(event.key.keysym.sym){
+                    case SDLK_LEFT:
+                        fallingPiece.setX(fallingPiece.getX() - 50);
+                        break;
+                    case SDLK_RIGHT:
+                        fallingPiece.setX(fallingPiece.getX() + 50);
+                        break;
+                    case SDLK_DOWN:
+                        fallingPiece.setY(fallingPiece.getY() + 50);
+                        break;
+                    default:
+                        break;
+            }
+            break;
         default:
             break;
     }
 }
 
-void Game::update() {
+void Game::update(Uint32 deltaTime) {
+    bool collision = false;
+        for (Piece piece : stationaryPieces) {
+            if (fallingPiece.getY() + fallingPiece.getH() >= piece.getY() && fallingPiece.getX() < piece.getX() + piece.getW() &&
+                fallingPiece.getX() + fallingPiece.getW() > piece.getX()) {
+                // Collision detected
+                collision = true;
+                std::cout << "collided" << std::endl;
+                break;
+            }
+        }
+
+        if (!collision && fallingPiece.getY() < 550) {
+            fallingPiece.setY(fallingPiece.getY()+FALLSPEED*deltaTime);
+        } else {
+            // Add the falling piece to the stationary pieces
+            stationaryPieces.push_back(fallingPiece);
+            // Spawn a new piece
+            fallingPiece.setX(width / 2);   // Reset x position
+            fallingPiece.setY(0);           // Reset y position
+        }
 
 }
+
 
 SDL_Texture* Game::loadTexture(const char* filePath) {
     SDL_Texture* texture = nullptr;

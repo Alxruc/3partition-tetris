@@ -14,12 +14,10 @@ int main() {
 
     //Load textures
     SDL_Texture* I_tex = game->loadTexture("textures/I.png");
-    Piece fallingPiece(SCREEN_WIDTH/2,0,0,1,I_tex);
+    game->initFirstPiece(I_tex, 1);
 
-
-    std::vector<Piece> stationaryPieces;
+    
     Uint32 lastFrame = SDL_GetTicks();
-    double fallSpeed = 0.1;
 
     while(game->running()) {
 
@@ -28,33 +26,12 @@ int main() {
         lastFrame = currentFrameTime;
 
         game->handleEvents();
-        game->update();
+        game->update(deltaTime);
+        Piece fallingPiece = game->getFalling();
+        std::vector<Piece> stationaryPieces = game->getStationary();
+
         game->clear();
-
-        game->render(fallingPiece);
-
-        // TODO Maybe move to game logic instead of main
-
-        bool collision = false;
-        for (Piece piece : stationaryPieces) {
-            if (fallingPiece.getY() + fallingPiece.getH() >= piece.getY() && fallingPiece.getX() < piece.getX() + piece.getW() &&
-                fallingPiece.getX() + fallingPiece.getW() > piece.getX()) {
-                // Collision detected
-                collision = true;
-                std::cout << "collided";
-                break;
-            }
-        }
-
-        if (!collision && fallingPiece.getY() < 550) {
-            fallingPiece.setY(fallingPiece.getY()+fallSpeed*deltaTime);
-        } else {
-            // Add the falling piece to the stationary pieces
-            stationaryPieces.push_back(fallingPiece);
-            // Spawn a new piece
-            fallingPiece.setX(SCREEN_WIDTH / 2); // Reset x position
-            fallingPiece.setY(0);                  // Reset y position
-        }
+        game->render(fallingPiece);   
 
 
         for (Piece piece : stationaryPieces) {

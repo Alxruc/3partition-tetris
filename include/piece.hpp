@@ -3,6 +3,7 @@
 
 class Piece {
     public:
+        Piece() : x(0), y(0), rotation(0), type(0), texture(nullptr) {}; //default constructor
         Piece(double x, double y, int rotation, int type, SDL_Texture* texture);
         double getX();
         double getY();
