@@ -4,7 +4,8 @@
 
 #include "../include/game.hpp"
 
-const float FALLSPEED = 0.1;
+const float FALLSPEED = 0.05;
+const int BLOCK_SIZE = 50;
 
 
 void Game::init(const char* title, int x, int y, int width, int height, bool fullscreen) {
@@ -59,17 +60,47 @@ void Game::handleEvents() {
             break;
         case SDL_KEYDOWN:
             switch(event.key.keysym.sym){
-                    case SDLK_LEFT:
-                        fallingPiece.setX(fallingPiece.getX() - 50);
-                        break;
-                    case SDLK_RIGHT:
-                        fallingPiece.setX(fallingPiece.getX() + 50);
-                        break;
-                    case SDLK_DOWN:
-                        fallingPiece.setY(fallingPiece.getY() + 50);
-                        break;
-                    default:
-                        break;
+                case SDLK_LEFT: {
+                    bool blocked = false; //check if there is a piece to the left of us blocking the way
+                    for (Piece piece : stationaryPieces) {
+                        if (fallingPiece.getX() - BLOCK_SIZE < piece.getX() + piece.getW() - 2 && 
+                            fallingPiece.getX() > piece.getX() &&
+                            fallingPiece.getY() < piece.getY() + BLOCK_SIZE - 2 &&
+                            piece.getY() < fallingPiece.getY() + fallingPiece.getH() + BLOCK_SIZE - 2) {
+                            // Collision detected
+                            blocked = true;
+                            std::cout << "blocked" << std::endl;
+                            break;
+                        }
+                    }
+                    if(!blocked) {
+                        fallingPiece.setX(fallingPiece.getX() - BLOCK_SIZE);
+                    }
+                }
+                break;
+                case SDLK_RIGHT: {
+                    bool blocked = false; //check if there is a piece to the right of us blocking the way
+                    for (Piece piece : stationaryPieces) {
+                        if (fallingPiece.getX() + piece.getW() + BLOCK_SIZE > piece.getX() && 
+                            fallingPiece.getX() < piece.getX() &&
+                            fallingPiece.getY() < piece.getY() + BLOCK_SIZE - 2 &&
+                            piece.getY() + piece.getH() < fallingPiece.getY() + fallingPiece.getH() + BLOCK_SIZE - 2) {
+                            // Collision detected
+                            blocked = true;
+                            std::cout << "blocked" << std::endl;
+                            break;
+                        }
+                    }
+                    if(!blocked) {
+                        fallingPiece.setX(fallingPiece.getX() + BLOCK_SIZE);
+                    }
+                }
+                break;
+                case SDLK_DOWN:
+                    fallingPiece.setY(fallingPiece.getY() + BLOCK_SIZE);
+                    break;
+                default:
+                    break;
             }
             break;
         default:
@@ -80,7 +111,9 @@ void Game::handleEvents() {
 void Game::update(Uint32 deltaTime) {
     bool collision = false;
         for (Piece piece : stationaryPieces) {
-            if (fallingPiece.getY() + fallingPiece.getH() >= piece.getY() && fallingPiece.getX() < piece.getX() + piece.getW() &&
+            if (fallingPiece.getY() + fallingPiece.getH() > piece.getY() && 
+                !(fallingPiece.getY() > piece.getY() + piece.getH()) &&
+                fallingPiece.getX() < piece.getX() + piece.getW() &&
                 fallingPiece.getX() + fallingPiece.getW() > piece.getX()) {
                 // Collision detected
                 collision = true;
@@ -89,10 +122,13 @@ void Game::update(Uint32 deltaTime) {
             }
         }
 
-        if (!collision && fallingPiece.getY() < 550) {
+        if (!collision && fallingPiece.getY() < height-BLOCK_SIZE) {
             fallingPiece.setY(fallingPiece.getY()+FALLSPEED*deltaTime);
         } else {
             // Add the falling piece to the stationary pieces
+            float y = fallingPiece.getY();
+ 
+            fallingPiece.setY(y - fmod(y, BLOCK_SIZE)); //so that the piece can't go into another piece
             stationaryPieces.push_back(fallingPiece);
             // Spawn a new piece
             fallingPiece.setX(width / 2);   // Reset x position

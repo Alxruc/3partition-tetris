@@ -3,7 +3,7 @@
 
 #include "../include/piece.hpp"
 
-Piece::Piece(double x, double y, int rotation, int type, SDL_Texture* texture) {
+Piece::Piece(float x, float y, int rotation, int type, SDL_Texture* texture) {
     this->x = x;
     this->y = y;
     this->type = type;
@@ -21,11 +21,11 @@ Piece::Piece(double x, double y, int rotation, int type, SDL_Texture* texture) {
 
 }
 
-double Piece::getX() {
+float Piece::getX() {
     return this->x;
 }
 
-double Piece::getY() {
+float Piece::getY() {
     return this->y;
 }
 
@@ -53,10 +53,10 @@ SDL_Rect Piece::getCurrentFrame() {
     return this->currentFrame;
 }
 
-void Piece::setX(double newValue) {
+void Piece::setX(float newValue) {
     this->x = newValue;
 }
 
-void Piece::setY(double newValue) {
+void Piece::setY(float newValue) {
     this->y = newValue;
 }

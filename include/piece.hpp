@@ -4,22 +4,22 @@
 class Piece {
     public:
         Piece() : x(0), y(0), rotation(0), type(0), texture(nullptr) {}; //default constructor
-        Piece(double x, double y, int rotation, int type, SDL_Texture* texture);
-        double getX();
-        double getY();
+        Piece(float x, float y, int rotation, int type, SDL_Texture* texture);
+        float getX();
+        float getY();
         int getH();
         int getW();
         int getRotation();
         int getType();
-        void setX(double newValue);
-        void setY(double newValue);
+        void setX(float newValue);
+        void setY(float newValue);
         SDL_Texture* getTexture();
         SDL_Rect getCurrentFrame();
 
 
     private:
-        double x;
-        double y;
+        float x;
+        float y;
         int rotation;
         int type;
         SDL_Rect currentFrame;
