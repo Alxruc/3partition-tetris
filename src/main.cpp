@@ -14,8 +14,9 @@ int main() {
 
     //Load textures
     SDL_Texture* I_tex = game->loadTexture("textures/I.png");
-    game->initFirstPiece(I_tex, 1);
+    game->initPiece(I_tex, 1);
 
+    Uint32 msecondCounter = 0;
     
     Uint32 lastFrame = SDL_GetTicks();
 
@@ -25,8 +26,11 @@ int main() {
         Uint32 deltaTime = currentFrameTime - lastFrame;
         lastFrame = currentFrameTime;
 
-        game->handleEvents();
-        game->update(deltaTime);
+        msecondCounter += deltaTime;
+
+
+        game->handleEvents(&msecondCounter);
+        game->update(&msecondCounter);
         Piece fallingPiece = game->getFalling();
         std::vector<Piece> stationaryPieces = game->getStationary();
 

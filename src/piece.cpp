@@ -14,8 +14,13 @@ Piece::Piece(float x, float y, int rotation, int type, SDL_Texture* texture) {
     
     switch(type) {
         case 1: //I
-        currentFrame.w = 200;
-        currentFrame.h = 50;
+            currentFrame.w = 200;
+            currentFrame.h = 50;
+        break;
+        case 2: // Sq
+            currentFrame.w = 100;
+            currentFrame.h = 100;
+        break;
     }
 
 

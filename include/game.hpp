@@ -11,13 +11,13 @@ class Game {
 
 public:
     void init(const char* title, int x, int y, int width, int height, bool fullscreen);
-    void initFirstPiece(SDL_Texture* tex, int type);
+    void initPiece(SDL_Texture* tex, int type);
 
     Piece getFalling();
     std::vector<Piece> getStationary();
 
-    void handleEvents();
-    void update(Uint32 deltaTime);
+    void handleEvents(Uint32* msecondCounter);
+    void update(Uint32* msecondCounter);
     SDL_Texture* loadTexture(const char* filePath);
     bool running();
     void clear();
