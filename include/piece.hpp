@@ -14,7 +14,12 @@ class Piece {
         void setX(float newValue);
         void setY(float newValue);
         SDL_Texture* getTexture();
-        SDL_Rect getCurrentFrame();
+        SDL_Rect* getRects();
+        SDL_Rect blockOne;
+        SDL_Rect blockTwo;
+        SDL_Rect blockThree;
+        SDL_Rect blockFour;
+        SDL_Rect rects[4]; //this is our tetromino made up of blocks one to four
 
 
     private:
@@ -22,6 +27,5 @@ class Piece {
         float y;
         int rotation;
         int type;
-        SDL_Rect currentFrame;
         SDL_Texture* texture;
 };

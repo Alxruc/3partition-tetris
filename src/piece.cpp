@@ -9,20 +9,45 @@ Piece::Piece(float x, float y, int rotation, int type, SDL_Texture* texture) {
     this->type = type;
     this->texture = texture;
 
-    currentFrame.x = 0;
-    currentFrame.y = 0;
+    blockOne.x = 0;
+    blockOne.y = 0;
+    blockOne.w = 50;
+    blockOne.h = 50;
+
+    blockTwo.w = 50;
+    blockTwo.h = 50;
+
+    blockThree.w = 50;
+    blockThree.h = 50;
+
+    blockFour.w = 50;
+    blockFour.h = 50;
+
+    
     
     switch(type) {
         case 1: //I
-            currentFrame.w = 200;
-            currentFrame.h = 50;
+            blockTwo.x = 50;
+            blockTwo.y = 0;
+            blockThree.x = 100;
+            blockThree.y = 0;
+            blockFour.x = 150;
+            blockFour.y = 0;
         break;
         case 2: // Sq
-            currentFrame.w = 100;
-            currentFrame.h = 100;
+            blockTwo.x = 50;
+            blockTwo.y = 0;
+            blockThree.x = 0;
+            blockThree.y = 50;
+            blockFour.x = 50;
+            blockFour.y = 50;
         break;
     }
 
+    rects[0] = blockOne;
+    rects[1] = blockTwo;
+    rects[2] = blockThree;
+    rects[3] = blockFour;
 
 }
 
@@ -35,11 +60,11 @@ float Piece::getY() {
 }
 
 int Piece::getH() {
-    return this->currentFrame.h;
+    return this->rects[0].h;
 }
 
 int Piece::getW() {
-    return this->currentFrame.w;
+    return this->rects[0].w;
 }
 
 int Piece::getRotation() {
@@ -54,8 +79,8 @@ SDL_Texture* Piece::getTexture() {
     return this->texture;
 }
 
-SDL_Rect Piece::getCurrentFrame() {
-    return this->currentFrame;
+SDL_Rect* Piece::getRects() {
+    return this->rects;
 }
 
 void Piece::setX(float newValue) {
