@@ -3,7 +3,16 @@
 #include <iostream>
 
 #include "../include/game.hpp"
-#include "constants.hpp"
+#include "../include/constants.hpp"
+
+SDL_Texture* I_tex;
+SDL_Texture* Sq_tex;
+SDL_Texture* LG_tex;
+SDL_Texture* RG_tex;
+SDL_Texture* LS_tex;
+SDL_Texture* RS_tex;
+SDL_Texture* T_tex;
+
 
 void Game::init(const char *title, int x, int y, int width, int height, bool fullscreen)
 {
@@ -38,6 +47,16 @@ void Game::init(const char *title, int x, int y, int width, int height, bool ful
     }
     this->width = width;
     this->height = height;
+    I_tex = loadTexture("textures/I_lightBlue.png");
+    Sq_tex = loadTexture("textures/square_yellow.png");
+    LG_tex = loadTexture("textures/leftGun_darkBlue.png");
+    RG_tex = loadTexture("textures/rightGun_orange.png");
+    LS_tex = loadTexture("textures/leftSnake_red.png");
+    RS_tex = loadTexture("textures/rightSnake_green.png");
+    T_tex = loadTexture("textures/T_magenta.png");
+    if(!I_tex || !Sq_tex || !LG_tex || !RG_tex || !LS_tex || !RS_tex || !T_tex) {
+        std::cout << "Error loading textures!" << std::endl;
+    }
 }
 
 void Game::initPiece(SDL_Texture *tex, int type)
@@ -241,26 +260,56 @@ void Game::handleEvents(Uint32 *msecondCounter)
 
         // switch piece type for debugging
         case SDLK_1:
-        {
-            SDL_Texture *I_tex = loadTexture("textures/I.png");
             if (I_tex != nullptr)
             {
                 this->initPiece(I_tex, 1);
                 std::cout << "changed piece to I" << std::endl;
             }
-        }
         break;
 
         case SDLK_2:
-        {
-            SDL_Texture *Sq_tex = loadTexture("textures/square.png");
             if (Sq_tex != nullptr)
             {
                 initPiece(Sq_tex, 2);
                 std::cout << "changed piece to Sq" << std::endl;
             }
-        }
         break;
+
+        case SDLK_3:
+            if(LG_tex != nullptr) {
+                initPiece(LG_tex, 3);
+                std::cout << "changed piece to LG" << std::endl;
+            }
+        break;
+
+        case SDLK_4:
+            if(RG_tex != nullptr) {
+                initPiece(RG_tex, 4);
+                std::cout << "changed piece to RG" << std::endl;
+            }
+        break;
+
+        case SDLK_5:
+            if(LS_tex != nullptr) {
+                initPiece(LS_tex, 5);
+                std::cout << "changed piece to LS" << std::endl;
+            }
+        break;
+
+        case SDLK_6:
+            if(RS_tex != nullptr) {
+                initPiece(RS_tex, 6);
+                std::cout << "changed piece to RS" << std::endl;
+            }
+        break;
+
+        case SDLK_7:
+            if(T_tex != nullptr) {
+                initPiece(T_tex, 7);
+                std::cout << "changed piece to T" << std::endl;
+            }
+        break;
+
         default:
             break;
         }
