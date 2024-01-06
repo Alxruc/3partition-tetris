@@ -154,3 +154,29 @@ void Piece::setX(float newValue) {
 void Piece::setY(float newValue) {
     this->y = newValue;
 }
+
+void Piece::rotateClockWise() {
+    // Rotate any piece clockwise by using the second block as center of rotation
+
+    if(this->type == 2) { //we dont need to rotate the square
+        return;
+    }
+
+    // Get the center of rotation
+    float centerX = this->rects[1].x;
+    float centerY = this->rects[1].y;
+
+    // Rotate each block around the center of rotation
+    for (int i = 0; i < 4; i++) {
+        // Get the coordinates of the block relative to the center of rotation
+        float x = this->rects[i].x - centerX;
+        float y = this->rects[i].y - centerY;
+
+        // Rotate the block around the center of rotation
+        this->rects[i].x = centerX - y;
+        this->rects[i].y = centerY + x;
+    }
+
+    this->rotation = (this->rotation + 1) % 4;
+        
+}

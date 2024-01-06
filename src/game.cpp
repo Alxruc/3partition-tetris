@@ -310,6 +310,11 @@ void Game::handleEvents(Uint32 *msecondCounter)
             }
         break;
 
+        case SDLK_r:
+            std::cout << "rotating" << std::endl;
+            fallingPiece.rotateClockWise();
+        break;
+
         default:
             break;
         }

@@ -13,6 +13,7 @@ class Piece {
         int getType();
         void setX(float newValue);
         void setY(float newValue);
+        void rotateClockWise();
         SDL_Texture* getTexture();
         SDL_Rect* getRects();
         SDL_Rect blockOne;
