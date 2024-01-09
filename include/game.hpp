@@ -14,10 +14,8 @@ class Game {
 public:
     void init(const char* title, int x, int y, int width, int height, bool fullscreen);
     void initPiece(SDL_Texture* tex, int type);
-
     Piece getFalling();
     std::vector<Piece> getStationary();
-
     void handleEvents(Uint32* msecondCounter);
     void update(Uint32* msecondCounter);
     SDL_Texture* loadTexture(const char* filePath);
@@ -26,8 +24,6 @@ public:
     void present();
     void render(Piece piece);
     void clean();
-    
-
 
     
 
@@ -39,7 +35,10 @@ private:
     int height;
     Piece fallingPiece;
     std::vector<Piece> stationaryPieces;
-
+    void handleLeft(Uint32* msecondCounter);
+    void handleRight(Uint32* msecondCounter);
+    void handleDown(Uint32* msecondCounter);
+    void handleRotate(Uint32* msecondCounter);
 };
 
 
