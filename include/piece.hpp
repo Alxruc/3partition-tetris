@@ -1,5 +1,9 @@
+#ifndef PIECE_HPP
+#define PIECE_HPP
+
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <array>
 
 class Piece {
     public:
@@ -13,6 +17,7 @@ class Piece {
         int getType();
         void setX(float newValue);
         void setY(float newValue);
+        std::array<int, 8> coordinatesOfCWRotation();
         void rotateClockWise();
         SDL_Texture* getTexture();
         SDL_Rect* getRects();
@@ -30,3 +35,5 @@ class Piece {
         int type;
         SDL_Texture* texture;
 };
+
+#endif 

@@ -13,6 +13,8 @@ SDL_Texture* LS_tex;
 SDL_Texture* RS_tex;
 SDL_Texture* T_tex;
 
+int BLOCK_SIZE = constants::DEFAULT_BLOCK_SIZE;
+
 
 void Game::init(const char *title, int x, int y, int width, int height, bool fullscreen)
 {
@@ -54,6 +56,7 @@ void Game::init(const char *title, int x, int y, int width, int height, bool ful
     LS_tex = loadTexture("textures/leftSnake_red.png");
     RS_tex = loadTexture("textures/rightSnake_green.png");
     T_tex = loadTexture("textures/T_magenta.png");
+    BLOCK_SIZE = 25;
     if(!I_tex || !Sq_tex || !LG_tex || !RG_tex || !LS_tex || !RS_tex || !T_tex) {
         std::cout << "Error loading textures!" << std::endl;
     }
@@ -112,8 +115,8 @@ void Game::handleEvents(Uint32 *msecondCounter)
 
                         if ((pY <= fY &&
                              fY < pY + pH &&
-                             fX - constants::BLOCK_SIZE < pX + pW) ||
-                            fX - constants::BLOCK_SIZE < 0)
+                             fX - BLOCK_SIZE < pX + pW) ||
+                            fX - BLOCK_SIZE < 0)
                         {
                             // Collision detected
                             blocked = true;
@@ -136,7 +139,7 @@ void Game::handleEvents(Uint32 *msecondCounter)
 
             if (!blocked)
             {
-                fallingPiece.setX(fallingPiece.getX() - constants::BLOCK_SIZE);
+                fallingPiece.setX(fallingPiece.getX() - BLOCK_SIZE);
                 // The piece should only move down once we haven't touched it for a bit to give us a chance to move
                 *msecondCounter = 0;
             }
@@ -169,8 +172,8 @@ void Game::handleEvents(Uint32 *msecondCounter)
 
                         if ((pY <= fY &&
                              fY < pY + pH &&
-                             fX + fW + constants::BLOCK_SIZE > pX) ||
-                            fX + fW + constants::BLOCK_SIZE > width)
+                             fX + fW + BLOCK_SIZE > pX) ||
+                            fX + fW + BLOCK_SIZE > width)
                         {
                             // Collision detected
                             blocked = true;
@@ -193,7 +196,7 @@ void Game::handleEvents(Uint32 *msecondCounter)
 
             if (!blocked)
             {
-                fallingPiece.setX(fallingPiece.getX() + constants::BLOCK_SIZE);
+                fallingPiece.setX(fallingPiece.getX() + BLOCK_SIZE);
                 // The piece should only move down once we haven't touched it for a bit to give us a chance to move
                 *msecondCounter = 0;
             }
@@ -228,7 +231,7 @@ void Game::handleEvents(Uint32 *msecondCounter)
                         if ((fY + fH >= pY &&
                             fX >= pX &&
                             fX + fW <= pX + pW) ||
-                            fY + fH + constants::BLOCK_SIZE >= height)
+                            fY + fH + BLOCK_SIZE >= height)
                         {
                             // Collision detected
                             blocked = true;
@@ -251,7 +254,7 @@ void Game::handleEvents(Uint32 *msecondCounter)
 
             if (!blocked)
             {
-                fallingPiece.setY(fallingPiece.getY() + constants::BLOCK_SIZE);
+                fallingPiece.setY(fallingPiece.getY() + BLOCK_SIZE);
                 // The piece should only move down once we haven't touched it for a bit to give us a chance to move
                 *msecondCounter = 0;
             }
@@ -310,9 +313,49 @@ void Game::handleEvents(Uint32 *msecondCounter)
             }
         break;
 
-        case SDLK_r:
+        case SDLK_r: {
             std::cout << "rotating" << std::endl;
-            fallingPiece.rotateClockWise();
+
+            // Check if we are allowed to rotate
+            bool blocked = false;
+            std::array<int,8> coords = fallingPiece.coordinatesOfCWRotation();
+            for (int i = 0; i < 8; i+=2)
+            {
+                int x = fallingPiece.getX() + coords[i]; //Rect coords are defined as relative to the piece
+                int y = fallingPiece.getY() + coords[i+1];
+                if (x < 0 || x >= width || y < 0 || y >= height)
+                { // out of bounds
+                    std::cout << "rotation blocked: out of bounds" << std::endl;
+                    std::cout << "x: " << x << " y: " << y << std::endl;
+                    blocked = true;
+                    break;
+                }
+
+                for(Piece piece : stationaryPieces) {
+                    SDL_Rect* rects = piece.getRects();
+                    for(int j = 0; j < 4; j++) {
+                        SDL_Rect rect = rects[j];
+                        if (x >= piece.getX() + rect.x &&
+                            x < piece.getX() + rect.x + rect.w &&
+                            y >= piece.getY() + rect.y &&
+                            y < piece.getY() + rect.y + rect.h)
+                        {
+                            std::cout << "rotation blocked: piece in the way" << std::endl;
+                            blocked = true;
+                            break;
+                        }
+                    }
+                    if(blocked) {
+                        break;
+                    }
+                }
+            }
+            if(!blocked) {
+                fallingPiece.rotateClockWise();
+            }
+            // The piece should only move down once we haven't touched it for a bit to give us a chance to move
+            *msecondCounter = 0;
+        }
         break;
 
         default:
@@ -340,7 +383,7 @@ void Game::update(Uint32 *msecondCounter)
                 SDL_Rect stationaryRect = piece.getRects()[k];
                 //the x/y in rect is only relative to the piece so you have to add it to the x/y of the piece
                 // TODO clean this up
-                if ((fallingPiece.getY() + fallingRect.y) + fallingRect.h + constants::BLOCK_SIZE > (piece.getY() + stationaryRect.y) &&
+                if ((fallingPiece.getY() + fallingRect.y) + fallingRect.h + BLOCK_SIZE > (piece.getY() + stationaryRect.y) &&
                     !((fallingPiece.getY() + fallingRect.y) > (piece.getY() + stationaryRect.y) + stationaryRect.h - 1) &&
                     (fallingPiece.getX() + fallingRect.x) < (piece.getX() + stationaryRect.x)  + stationaryRect.w &&
                     (fallingPiece.getX() + fallingRect.x) + fallingRect.w > (piece.getX() + stationaryRect.x))
@@ -362,7 +405,7 @@ void Game::update(Uint32 *msecondCounter)
     {
         // check if any of the squares of our piece touch the bottom edge of the screen
         SDL_Rect fallingRect = fallingPiece.getRects()[i];
-        if (fallingPiece.getY() + fallingRect.y + constants::BLOCK_SIZE >= height)
+        if (fallingPiece.getY() + fallingRect.y + BLOCK_SIZE >= height)
         {
             std::cout << "touched bottom" << std::endl;
             bottomOfScreen = true;
@@ -375,7 +418,7 @@ void Game::update(Uint32 *msecondCounter)
 
         if (*msecondCounter >= constants::ADJUSTING_TIME)
         { // update pos once we have gone ADJUSTING_TIME ms without adjusting piece
-            fallingPiece.setY(fallingPiece.getY() + constants::BLOCK_SIZE);
+            fallingPiece.setY(fallingPiece.getY() + BLOCK_SIZE);
             *msecondCounter = 0;
         }
     }

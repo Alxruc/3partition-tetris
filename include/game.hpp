@@ -7,6 +7,8 @@
 
 #include "../include/piece.hpp"
 
+extern int BLOCK_SIZE;
+
 class Game {
 
 public:

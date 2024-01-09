@@ -1,9 +1,12 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <iostream>
+#include <array>
 
 #include "../include/piece.hpp"
 #include "../include/constants.hpp"
+
+#include "../include/game.hpp"
 
 
 Piece::Piece(float x, float y, int rotation, int type, SDL_Texture* texture) {
@@ -14,17 +17,17 @@ Piece::Piece(float x, float y, int rotation, int type, SDL_Texture* texture) {
 
     blockOne.x = 0;
     blockOne.y = 0;
-    blockOne.w = constants::BLOCK_SIZE;
-    blockOne.h = constants::BLOCK_SIZE;
+    blockOne.w = BLOCK_SIZE; //BLOCK_SIZE is an external variable in game.hpp
+    blockOne.h = BLOCK_SIZE;
 
-    blockTwo.w = constants::BLOCK_SIZE;
-    blockTwo.h = constants::BLOCK_SIZE;
+    blockTwo.w = BLOCK_SIZE;
+    blockTwo.h = BLOCK_SIZE;
 
-    blockThree.w = constants::BLOCK_SIZE;
-    blockThree.h = constants::BLOCK_SIZE;
+    blockThree.w = BLOCK_SIZE;
+    blockThree.h = BLOCK_SIZE;
 
-    blockFour.w = constants::BLOCK_SIZE;
-    blockFour.h = constants::BLOCK_SIZE;
+    blockFour.w = BLOCK_SIZE;
+    blockFour.h = BLOCK_SIZE;
 
     
     
@@ -33,74 +36,74 @@ Piece::Piece(float x, float y, int rotation, int type, SDL_Texture* texture) {
         // numbers in the comments in each case indicate the ordering of the blocks
         case 1: //I
             // 1 2 3 4
-            blockTwo.x = constants::BLOCK_SIZE;
+            blockTwo.x = BLOCK_SIZE;
             blockTwo.y = 0;
-            blockThree.x = 2 * constants::BLOCK_SIZE;
+            blockThree.x = 2 * BLOCK_SIZE;
             blockThree.y = 0;
-            blockFour.x = 3 * constants::BLOCK_SIZE;
+            blockFour.x = 3 * BLOCK_SIZE;
             blockFour.y = 0;
         break;
         case 2: // Square
             // 1 2
             // 3 4
-            blockTwo.x = constants::BLOCK_SIZE;
+            blockTwo.x = BLOCK_SIZE;
             blockTwo.y = 0;
             blockThree.x = 0;
-            blockThree.y = constants::BLOCK_SIZE;
-            blockFour.x = constants::BLOCK_SIZE;
-            blockFour.y = constants::BLOCK_SIZE;
+            blockThree.y = BLOCK_SIZE;
+            blockFour.x = BLOCK_SIZE;
+            blockFour.y = BLOCK_SIZE;
         break;
         case 3: // Left Gun
             // 1 - -
             // 2 3 4
             blockTwo.x = 0;
-            blockTwo.y = constants::BLOCK_SIZE;
-            blockThree.x = constants::BLOCK_SIZE;
-            blockThree.y = constants::BLOCK_SIZE;
-            blockFour.x = 2 * constants::BLOCK_SIZE;
-            blockFour.y = constants::BLOCK_SIZE;
+            blockTwo.y = BLOCK_SIZE;
+            blockThree.x = BLOCK_SIZE;
+            blockThree.y = BLOCK_SIZE;
+            blockFour.x = 2 * BLOCK_SIZE;
+            blockFour.y = BLOCK_SIZE;
             break;
         case 4: // Right Gun
             // - - 1
             // 4 3 2
             blockTwo.x = 0;
-            blockTwo.y = constants::BLOCK_SIZE;
-            blockThree.x = -constants::BLOCK_SIZE;
-            blockThree.y = constants::BLOCK_SIZE;
-            blockFour.x = -2 * constants::BLOCK_SIZE;
-            blockFour.y = constants::BLOCK_SIZE;
+            blockTwo.y = BLOCK_SIZE;
+            blockThree.x = -BLOCK_SIZE;
+            blockThree.y = BLOCK_SIZE;
+            blockFour.x = -2 * BLOCK_SIZE;
+            blockFour.y = BLOCK_SIZE;
             break;
         case 5: // Left Snake
             // - 1
             // 3 2
             // 4 -
             blockTwo.x = 0;
-            blockTwo.y = constants::BLOCK_SIZE;
-            blockThree.x = -constants::BLOCK_SIZE;
-            blockThree.y = constants::BLOCK_SIZE;
-            blockFour.x = -constants::BLOCK_SIZE;
-            blockFour.y = 2 * constants::BLOCK_SIZE;
+            blockTwo.y = BLOCK_SIZE;
+            blockThree.x = -BLOCK_SIZE;
+            blockThree.y = BLOCK_SIZE;
+            blockFour.x = -BLOCK_SIZE;
+            blockFour.y = 2 * BLOCK_SIZE;
             break;
         case 6: // Right Snake
             // 1 -
             // 2 3
             // - 4
             blockTwo.x = 0;
-            blockTwo.y = constants::BLOCK_SIZE;
-            blockThree.x = constants::BLOCK_SIZE;
-            blockThree.y = constants::BLOCK_SIZE;
-            blockFour.x = constants::BLOCK_SIZE;
-            blockFour.y = 2 * constants::BLOCK_SIZE;
+            blockTwo.y = BLOCK_SIZE;
+            blockThree.x = BLOCK_SIZE;
+            blockThree.y = BLOCK_SIZE;
+            blockFour.x = BLOCK_SIZE;
+            blockFour.y = 2 * BLOCK_SIZE;
             break;
         case 7: // T
             // - 1 -
             // 2 3 4
-            blockTwo.x = -constants::BLOCK_SIZE;
-            blockTwo.y = constants::BLOCK_SIZE;
+            blockTwo.x = -BLOCK_SIZE;
+            blockTwo.y = BLOCK_SIZE;
             blockThree.x = 0;
-            blockThree.y = constants::BLOCK_SIZE;
-            blockFour.x = constants::BLOCK_SIZE;
-            blockFour.y = constants::BLOCK_SIZE;
+            blockThree.y = BLOCK_SIZE;
+            blockFour.x = BLOCK_SIZE;
+            blockFour.y = BLOCK_SIZE;
             break;
         default:
             std::cout << "Invalid type in Piece Constructor" << std::endl;
@@ -155,6 +158,30 @@ void Piece::setY(float newValue) {
     this->y = newValue;
 }
 
+std::array<int, 8> Piece::coordinatesOfCWRotation() {
+    // Returns the coordinates of the blocks after a clockwise rotation
+    // Coordinates are returned in an array where the first two elements are the coordinates of the first block, 
+    // the second two of the second block and so on
+    std::array<int, 8> coordinates;
+
+    // Get the center of rotation
+    int centerX = this->rects[1].x;
+    int centerY = this->rects[1].y;
+
+    // Rotate each block around the center of rotation
+    for (int i = 0; i < 8; i = i + 2) {
+        // Get the coordinates of the block relative to the center of rotation
+        int x = this->rects[i/2].x - centerX;
+        int y = this->rects[i/2].y - centerY;
+
+        // Rotate the block around the center of rotation
+        coordinates[i] = centerX - y;
+        coordinates[i+1] = centerY + x;
+    }
+
+    return coordinates;
+}
+
 void Piece::rotateClockWise() {
     // Rotate any piece clockwise by using the second block as center of rotation
 
@@ -163,14 +190,14 @@ void Piece::rotateClockWise() {
     }
 
     // Get the center of rotation
-    float centerX = this->rects[1].x;
-    float centerY = this->rects[1].y;
+    int centerX = this->rects[1].x;
+    int centerY = this->rects[1].y;
 
     // Rotate each block around the center of rotation
     for (int i = 0; i < 4; i++) {
         // Get the coordinates of the block relative to the center of rotation
-        float x = this->rects[i].x - centerX;
-        float y = this->rects[i].y - centerY;
+        int x = this->rects[i].x - centerX;
+        int y = this->rects[i].y - centerY;
 
         // Rotate the block around the center of rotation
         this->rects[i].x = centerX - y;
