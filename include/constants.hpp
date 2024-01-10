@@ -1,5 +1,5 @@
-#ifndef CONSTANTS_H
-#define CONSTANTS_H
+#ifndef constants_hpp
+#define constants_hpp
 
 namespace constants
 {

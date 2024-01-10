@@ -5,16 +5,26 @@
 
 Game *game = nullptr;
 const int SCREEN_WIDTH = 800;
-const int SCREEN_HEIGHT = 600; 
+const int SCREEN_HEIGHT = 1000; 
 
 int main() {
 
     game = new Game();
-    game->init("Tetris is hard", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, false);
+    game->init("Tetris is hard", SDL_WINDOWPOS_CENTERED, 0, SCREEN_WIDTH, SCREEN_HEIGHT, false);
 
     //Load textures
     SDL_Texture* I_tex = game->loadTexture("textures/I.png");
     game->initPiece(I_tex, 1);
+
+    std::vector<Bucket> buckets;
+
+    for(int s = 0; s < 10; s++) { // Example of how the buckets will be created
+        Bucket bucket(16, s, SCREEN_HEIGHT, game->loadTexture("textures/border_gray.png"));
+        buckets.push_back(bucket);
+    }
+    game->setBuckets(buckets);
+
+    
 
     Uint32 msecond = 0;
     Uint32* msecondCounter = &msecond;
@@ -37,7 +47,7 @@ int main() {
 
         game->clear();
         game->render(fallingPiece);   
-
+        game->render(buckets);
 
         for (Piece piece : stationaryPieces) {
             game->render(piece);

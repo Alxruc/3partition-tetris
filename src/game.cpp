@@ -4,6 +4,7 @@
 
 #include "../include/game.hpp"
 #include "../include/constants.hpp"
+#include "../include/bucket.hpp"
 
 SDL_Texture *I_tex;
 SDL_Texture *Sq_tex;
@@ -55,10 +56,11 @@ void Game::init(const char *title, int x, int y, int width, int height, bool ful
     LS_tex = loadTexture("textures/leftSnake_red.png");
     RS_tex = loadTexture("textures/rightSnake_green.png");
     T_tex = loadTexture("textures/T_magenta.png");
-    BLOCK_SIZE = 25;
+    BLOCK_SIZE = 5;
     if (!I_tex || !Sq_tex || !LG_tex || !RG_tex || !LS_tex || !RS_tex || !T_tex)
     {
         std::cout << "Error loading textures!" << std::endl;
+        isRunning = false;
     }
 }
 
@@ -76,6 +78,11 @@ std::vector<Piece> Game::getStationary()
 {
     return this->stationaryPieces;
 };
+
+void Game::setBuckets(std::vector<Bucket> buckets)
+{
+    this->buckets = buckets;
+}
 
 void Game::handleLeft(Uint32 *msecondCounter)
 {
@@ -108,7 +115,7 @@ void Game::handleLeft(Uint32 *msecondCounter)
                 {
                     // Collision detected
                     blocked = true;
-                    std::cout << "blocked" << std::endl;
+                    std::cout << "blocked by piece" << std::endl;
                     break;
                 }
             }
@@ -118,13 +125,7 @@ void Game::handleLeft(Uint32 *msecondCounter)
                 break;
             }
         }
-
-        if (blocked)
-        {
-            break;
-        }
     }
-
     if (!blocked)
     {
         fallingPiece.setX(fallingPiece.getX() - BLOCK_SIZE);
@@ -165,7 +166,7 @@ void Game::handleRight(Uint32 *msecondCounter)
                 {
                     // Collision detected
                     blocked = true;
-                    std::cout << "blocked" << std::endl;
+                    std::cout << "blocked by piece" << std::endl;
                     break;
                 }
             }
@@ -223,7 +224,7 @@ void Game::handleDown(Uint32 *msecondCounter)
                 {
                     // Collision detected
                     blocked = true;
-                    std::cout << "blocked" << std::endl;
+                    std::cout << "blocked by piece" << std::endl;
                     break;
                 }
             }
@@ -483,6 +484,30 @@ void Game::clear()
 void Game::present()
 {
     SDL_RenderPresent(renderer);
+}
+
+void Game::render(std::vector<Bucket> buckets)
+{
+    for (Bucket bucket : buckets)
+    {
+        std::vector<SDL_Rect> rects = bucket.getRects();
+        SDL_Texture *texture = bucket.getTexture();
+
+        for (SDL_Rect rect : rects)
+        {
+            SDL_Rect src;
+            src.x = 0;
+            src.y = 0;
+            src.w = rect.w;
+            src.h = rect.h;
+
+            SDL_Rect dst = src;
+            dst.x = rect.x;
+            dst.y = rect.y;
+
+            SDL_RenderCopy(renderer, texture, &src, &dst);
+        }
+    }
 }
 
 void Game::render(Piece piece)

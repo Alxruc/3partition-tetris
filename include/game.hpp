@@ -6,6 +6,7 @@
 #include <SDL2/SDL.h>
 
 #include "../include/piece.hpp"
+#include "../include/bucket.hpp"
 
 extern int BLOCK_SIZE;
 
@@ -16,12 +17,14 @@ public:
     void initPiece(SDL_Texture* tex, int type);
     Piece getFalling();
     std::vector<Piece> getStationary();
+    void setBuckets(std::vector<Bucket> buckets);
     void handleEvents(Uint32* msecondCounter);
     void update(Uint32* msecondCounter);
     SDL_Texture* loadTexture(const char* filePath);
     bool running();
     void clear();
     void present();
+    void render(std::vector<Bucket> buckets);
     void render(Piece piece);
     void clean();
 
@@ -35,6 +38,7 @@ private:
     int height;
     Piece fallingPiece;
     std::vector<Piece> stationaryPieces;
+    std::vector<Bucket> buckets;
     void handleLeft(Uint32* msecondCounter);
     void handleRight(Uint32* msecondCounter);
     void handleDown(Uint32* msecondCounter);

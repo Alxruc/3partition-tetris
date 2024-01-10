@@ -1,5 +1,5 @@
-#ifndef PIECE_HPP
-#define PIECE_HPP
+#ifndef piece_hpp
+#define piece_hpp
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
