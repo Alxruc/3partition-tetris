@@ -26,7 +26,7 @@ void Game::init(const char *title, int x, int y, int width, int height, bool ful
 
     if (SDL_Init(SDL_INIT_EVERYTHING) == 0)
     {
-        std::cout << "Initialized";
+        std::cout << "Initialized" << std::endl;
         window = SDL_CreateWindow(title, x, y, width, height, flags);
 
         if (window)
@@ -95,7 +95,7 @@ void Game::handleLeft(Uint32 *msecondCounter)
     {
         SDL_Rect fallingRect = fallingRects[i];
         float fY = fallingPiece.getY() + fallingRect.y;
-        float fX = fallingPiece.getY() + fallingRect.x;
+        float fX = fallingPiece.getX() + fallingRect.x;
 
         for (Piece piece : stationaryPieces)
         {
@@ -120,6 +120,34 @@ void Game::handleLeft(Uint32 *msecondCounter)
                 }
             }
 
+            if (blocked)
+            {
+                break;
+            }
+        }
+
+        for (Bucket bucket : buckets)
+        {
+            std::vector<SDL_Rect> bucketRects = bucket.getRects();
+
+            for (SDL_Rect bucketRect : bucketRects)
+            {
+                float bX = bucketRect.x;
+                float bY = bucketRect.y;
+                float bW = bucketRect.w;
+                float bH = bucketRect.h;
+
+                if (fX >= bX + bW && fX - BLOCK_SIZE < bX + bW && fY >= bY && fY < bY + bH)
+                {
+                    blocked = true;
+                    break;
+                }
+
+                if (blocked)
+                {
+                    break;
+                }
+            }
             if (blocked)
             {
                 break;
@@ -177,9 +205,33 @@ void Game::handleRight(Uint32 *msecondCounter)
             }
         }
 
-        if (blocked)
+        for (Bucket bucket : buckets)
         {
-            break;
+            std::vector<SDL_Rect> bucketRects = bucket.getRects();
+
+            for (SDL_Rect bucketRect : bucketRects)
+            {
+                float bX = bucketRect.x;
+                float bY = bucketRect.y;
+                float bW = bucketRect.w;
+                float bH = bucketRect.h;
+
+                if (fX < bX && fX + BLOCK_SIZE >= bX && fY >= bY && fY < bY + bH)
+                {
+                    blocked = true;
+                    break;
+                }
+
+                if (blocked)
+                {
+                    break;
+                }
+            }
+
+            if (blocked)
+            {
+                break;
+            }
         }
     }
 
