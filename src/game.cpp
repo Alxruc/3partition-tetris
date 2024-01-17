@@ -137,7 +137,10 @@ void Game::handleLeft(Uint32 *msecondCounter)
                 float bW = bucketRect.w;
                 float bH = bucketRect.h;
 
-                if (fX >= bX + bW && fX - BLOCK_SIZE < bX + bW && fY >= bY && fY < bY + bH)
+                if (fX >= bX + bW &&
+                    fX - BLOCK_SIZE < bX + bW &&
+                    fY >= bY &&
+                    fY < bY + bH)
                 {
                     blocked = true;
                     break;
@@ -213,10 +216,12 @@ void Game::handleRight(Uint32 *msecondCounter)
             {
                 float bX = bucketRect.x;
                 float bY = bucketRect.y;
-                float bW = bucketRect.w;
                 float bH = bucketRect.h;
 
-                if (fX < bX && fX + BLOCK_SIZE >= bX && fY >= bY && fY < bY + bH)
+                if (fX < bX &&
+                    fX + BLOCK_SIZE >= bX &&
+                    fY >= bY &&
+                    fY < bY + bH)
                 {
                     blocked = true;
                     break;
@@ -287,6 +292,36 @@ void Game::handleDown(Uint32 *msecondCounter)
             }
         }
 
+        for (Bucket bucket : buckets)
+        {
+            std::vector<SDL_Rect> bucketRects = bucket.getRects();
+
+            for (SDL_Rect bucketRect : bucketRects)
+            {
+                float bX = bucketRect.x;
+                float bY = bucketRect.y;
+                float bW = bucketRect.w;
+
+                if (fY + fH >= bY &&
+                    fX >= bX &&
+                    fX + fW <= bX + bW)
+                {
+                    blocked = true;
+                    break;
+                }
+
+                if (blocked)
+                {
+                    break;
+                }
+            }
+
+            if (blocked)
+            {
+                break;
+            }
+        }
+
         if (blocked)
         {
             break;
@@ -341,13 +376,41 @@ void Game::handleRotate(Uint32 *msecondCounter)
                 break;
             }
         }
+
+        if (blocked)
+        {
+            break;
+        }
+
+        for (Bucket bucket : buckets)
+        {
+            std::vector<SDL_Rect> bucketRects = bucket.getRects();
+
+            for (SDL_Rect bucketRect : bucketRects)
+            {
+                if (x >= bucketRect.x &&
+                    x < bucketRect.x + bucketRect.w &&
+                    y >= bucketRect.y &&
+                    y < bucketRect.y + bucketRect.h)
+                {
+                    std::cout << "rotation blocked: bucket in the way" << std::endl;
+                    blocked = true;
+                    break;
+                }
+            }
+            if (blocked)
+            {
+                break;
+            }
+        }
     }
     if (!blocked)
     {
+        // The piece should only move down once we haven't touched it for a bit to give us a chance to move
+        *msecondCounter = 0;
         fallingPiece.rotateClockWise();
     }
-    // The piece should only move down once we haven't touched it for a bit to give us a chance to move
-    *msecondCounter = 0;
+    
 }
 
 void Game::handleEvents(Uint32 *msecondCounter)
@@ -445,21 +508,34 @@ void Game::handleEvents(Uint32 *msecondCounter)
 void Game::update(Uint32 *msecondCounter)
 {
     bool collision = false;
-    for (int i = 0; i < (int)stationaryPieces.size(); i++)
+
+    for (int j = 0; j < 4; j++)
     {
-        Piece piece = stationaryPieces[i];
-        for (int j = 0; j < 4; j++)
+        SDL_Rect fallingRect = fallingPiece.getRects()[j];
+
+        float fY = fallingPiece.getY() + fallingRect.y;
+        float fX = fallingPiece.getX() + fallingRect.x;
+        float fW = fallingRect.w;
+        float fH = fallingRect.h;
+
+        for (int i = 0; i < (int)stationaryPieces.size(); i++)
         {
-            SDL_Rect fallingRect = fallingPiece.getRects()[j];
+            Piece piece = stationaryPieces[i];
             for (int k = 0; k < 4; k++)
             {
                 SDL_Rect stationaryRect = piece.getRects()[k];
+
+                float pX = piece.getX() + stationaryRect.x;
+                float pY = piece.getY() + stationaryRect.y;
+                float pH = stationaryRect.h;
+                float pW = stationaryRect.w;
+
                 // the x/y in rect is only relative to the piece so you have to add it to the x/y of the piece
-                //  TODO clean this up
-                if ((fallingPiece.getY() + fallingRect.y) + fallingRect.h + BLOCK_SIZE > (piece.getY() + stationaryRect.y) &&
-                    !((fallingPiece.getY() + fallingRect.y) > (piece.getY() + stationaryRect.y) + stationaryRect.h - 1) &&
-                    (fallingPiece.getX() + fallingRect.x) < (piece.getX() + stationaryRect.x) + stationaryRect.w &&
-                    (fallingPiece.getX() + fallingRect.x) + fallingRect.w > (piece.getX() + stationaryRect.x))
+
+                if (fY + fH + BLOCK_SIZE > pY &&
+                    !(fY > pY + pH - 1) &&
+                    fX < pX + pW &&
+                    fX + fW > pX)
                 {
                     // Collision detected
                     collision = true;
@@ -468,6 +544,30 @@ void Game::update(Uint32 *msecondCounter)
             }
             if (collision)
                 break;
+        }
+        if (collision)
+            break;
+
+        for (Bucket bucket : buckets)
+        {
+            std::vector<SDL_Rect> bucketRects = bucket.getRects();
+
+            for (SDL_Rect bucketRect : bucketRects)
+            {
+                float bX = bucketRect.x;
+                float bY = bucketRect.y;
+                float bW = bucketRect.w;
+                float bH = bucketRect.h;
+
+                if (fY + fH + BLOCK_SIZE > bY &&
+                    !(fY > bY + bH - 1) &&
+                    fX < bX + bW &&
+                    fX + fW > bX)
+                {
+                    collision = true;
+                    break;
+                }
+            }
         }
         if (collision)
             break;
