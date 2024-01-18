@@ -47,6 +47,7 @@ void Game::init(const char *title, int x, int y, int width, int height, bool ful
     {
         isRunning = false;
     }
+    //BLOCK_SIZE = 10;
     this->width = width;
     this->height = height;
     I_tex = loadTexture("textures/I_lightBlue.png");
@@ -56,7 +57,6 @@ void Game::init(const char *title, int x, int y, int width, int height, bool ful
     LS_tex = loadTexture("textures/leftSnake_red.png");
     RS_tex = loadTexture("textures/rightSnake_green.png");
     T_tex = loadTexture("textures/T_magenta.png");
-    BLOCK_SIZE = 5;
     if (!I_tex || !Sq_tex || !LG_tex || !RG_tex || !LS_tex || !RS_tex || !T_tex)
     {
         std::cout << "Error loading textures!" << std::endl;
@@ -66,7 +66,8 @@ void Game::init(const char *title, int x, int y, int width, int height, bool ful
 
 void Game::initPiece(SDL_Texture *tex, int type)
 {
-    fallingPiece = Piece(width / 2, 0, 0, type, tex);
+    int center = (width / 2 / BLOCK_SIZE) * BLOCK_SIZE; // make it so it isnt a small offset with different BLOCK_SIZES
+    fallingPiece = Piece(center, 0, 0, type, tex);
 }
 
 Piece Game::getFalling()
@@ -250,8 +251,8 @@ void Game::handleRight(Uint32 *msecondCounter)
 
 void Game::handleDown(Uint32 *msecondCounter)
 {
-    // check if there is a piece to the right of us blocking the way
-    // or the edge of the screen
+    // check if there is a piece below us blocking the way or the bottom of the screen
+    // known bug: holding down the down arrow lets you go past the bottom
     bool blocked = false;
     SDL_Rect *fallingRects = fallingPiece.getRects();
 
@@ -621,6 +622,10 @@ SDL_Texture *Game::loadTexture(const char *filePath)
         std::cout << "Couldn't load texture" << std::endl;
     }
     return texture;
+}
+
+void Game::changeBlockSize(int newBlockSize) {
+    BLOCK_SIZE = newBlockSize;
 }
 
 bool Game::running()

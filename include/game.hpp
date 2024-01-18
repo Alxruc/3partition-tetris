@@ -21,6 +21,7 @@ public:
     void handleEvents(Uint32* msecondCounter);
     void update(Uint32* msecondCounter);
     SDL_Texture* loadTexture(const char* filePath);
+    void changeBlockSize(int newBlockSize);
     bool running();
     void clear();
     void present();
