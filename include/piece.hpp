@@ -20,12 +20,13 @@ class Piece {
         std::array<int, 8> coordinatesOfCWRotation();
         void rotateClockWise();
         SDL_Texture* getTexture();
-        SDL_Rect* getRects();
+        std::vector<SDL_Rect> getRects();
+        void setRects(std::vector<SDL_Rect> newRects);
         SDL_Rect blockOne;
         SDL_Rect blockTwo;
         SDL_Rect blockThree;
         SDL_Rect blockFour;
-        SDL_Rect rects[4]; //this is our tetromino made up of blocks one to four
+        std::vector<SDL_Rect> rects; //this is our tetromino made up of blocks one to four
 
 
     private:

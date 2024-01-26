@@ -7,13 +7,14 @@
 
 #include "../include/piece.hpp"
 #include "../include/bucket.hpp"
+#include "../include/constants.hpp"
 
 extern int BLOCK_SIZE;
 
 class Game {
 
 public:
-    void init(const char* title, int x, int y, int width, int height, bool fullscreen);
+    void init(const char* title, int x, int y, int width, int height, int blocksize, bool fullscreen);
     void initPiece(SDL_Texture* tex, int type);
     Piece getFalling();
     std::vector<Piece> getStationary();
@@ -22,14 +23,16 @@ public:
     void update(Uint32* msecondCounter);
     SDL_Texture* loadTexture(const char* filePath);
     void changeBlockSize(int newBlockSize);
+    void fillGridHelper(Bucket bucket);
     bool running();
     void clear();
     void present();
+    void clearRows(std::vector<int> filledRows);
     void render(std::vector<Bucket> buckets);
     void render(Piece piece);
     void clean();
+    std::vector<std::vector<bool>> grid;
 
-    
 
 private:
     bool isRunning;

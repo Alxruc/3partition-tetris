@@ -10,51 +10,44 @@
 Bucket::Bucket(int T, int bucketNumber, int bottomOfScreen, SDL_Texture* texture) {
     this->T = T;
     this->bucketNumber = bucketNumber;
+    this->texture = texture;
 
     // Here we will create the rects for the bucket
     // I am breaking the bucket up into parts to easily construct it 
-    // The bottom part here is the bottom 4 rows, that are all filled except for the 3rd column
-    // The top part is the repeating part
+    // From paper:
+    // " The first column is empty except that the lowest two rows are full"
+    // " The second column is completely empty"
+    // " The third column is full in each row h === {1,2,3} (mod 5) and [empty otherwise]"
+    // " The fourth column is completely full"
 
-    // "Bottom part"
     
+    // The left side of the bottom part
 
-    SDL_Rect bottom1;
-    bottom1.w = 2 * BLOCK_SIZE;
-    bottom1.h = 4 * BLOCK_SIZE;
-    bottom1.x = bucketNumber * (6 * BLOCK_SIZE); // Each bucket is 6 blocks wide
-    bottom1.y = bottomOfScreen - bottom1.h;
+    SDL_Rect col1;
+    col1.w = BLOCK_SIZE;
+    col1.h = 2 * BLOCK_SIZE;
+    col1.x = bucketNumber * (4 * BLOCK_SIZE); // Each bucket is 4 blocks wide
+    col1.y = bottomOfScreen - col1.h;
+    rects.push_back(col1);
     
-
-    SDL_Rect bottom2;
-    bottom2.w = 3 * BLOCK_SIZE;
-    bottom2.h = 4 * BLOCK_SIZE;
-    bottom2.x = bottom1.x + 3 * BLOCK_SIZE;
-    bottom2.y = bottomOfScreen - bottom2.h;
-
-    rects.push_back(bottom1);
-    rects.push_back(bottom2);
-
-    this->texture = texture;
-
-    // "Top part"
-    // Repeating part depending on T
-    for(int i = 0; i < T+3; i++) {
-        SDL_Rect column4and5;
-        column4and5.w = 2 * BLOCK_SIZE;
-        column4and5.h = 5 * BLOCK_SIZE;
-        column4and5.x = bottom1.x + 3 * BLOCK_SIZE;
-        column4and5.y = bottomOfScreen - (column4and5.h +  5 * BLOCK_SIZE) - (i * 6 * BLOCK_SIZE);
-
-        SDL_Rect column6;
-        column6.w = BLOCK_SIZE;
-        column6.h = 6 * BLOCK_SIZE;
-        column6.x = bottom1.x + 5 * BLOCK_SIZE;
-        column6.y = bottomOfScreen - (column6.h + 4 * BLOCK_SIZE) - (i * 6 * BLOCK_SIZE);  
-
-        rects.push_back(column4and5);
-        rects.push_back(column6);
+    // The repeating part
+    for(int i = 0; i < (T+4); i++) {
+        SDL_Rect col3;
+        col3.w = BLOCK_SIZE;
+        col3.h = 3 * BLOCK_SIZE;
+        col3.x = bucketNumber * (4 * BLOCK_SIZE) + 2 * BLOCK_SIZE;
+        col3.y = bottomOfScreen - (5 * i * BLOCK_SIZE) - (3 * BLOCK_SIZE);
+        rects.push_back(col3);
     }
+
+    // TODO: still causes a small rendering bug, but has correct collision
+    SDL_Rect col4;
+    col4.w = BLOCK_SIZE;
+    col4.h = (5*T + 18) * BLOCK_SIZE;
+    col4.x = bucketNumber * (4 * BLOCK_SIZE) + 3 * BLOCK_SIZE;
+    col4.y = bottomOfScreen - col4.h;
+    rects.push_back(col4);
+   
 
 }
 

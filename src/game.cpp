@@ -1,6 +1,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <iostream>
+#include <algorithm>
 
 #include "../include/game.hpp"
 #include "../include/constants.hpp"
@@ -16,7 +17,7 @@ SDL_Texture *T_tex;
 
 int BLOCK_SIZE = constants::DEFAULT_BLOCK_SIZE;
 
-void Game::init(const char *title, int x, int y, int width, int height, bool fullscreen)
+void Game::init(const char *title, int x, int y, int width, int height, int blocksize, bool fullscreen)
 {
     int flags = 0;
     if (fullscreen)
@@ -47,7 +48,7 @@ void Game::init(const char *title, int x, int y, int width, int height, bool ful
     {
         isRunning = false;
     }
-    //BLOCK_SIZE = 10;
+
     this->width = width;
     this->height = height;
     I_tex = loadTexture("textures/I_lightBlue.png");
@@ -62,6 +63,11 @@ void Game::init(const char *title, int x, int y, int width, int height, bool ful
         std::cout << "Error loading textures!" << std::endl;
         isRunning = false;
     }
+    BLOCK_SIZE = blocksize;
+
+    std::cout << "width: " << width / BLOCK_SIZE << " height: " << height / BLOCK_SIZE << std::endl;
+
+    grid = std::vector<std::vector<bool>>(width / BLOCK_SIZE, std::vector<bool>(height / BLOCK_SIZE, false));
 }
 
 void Game::initPiece(SDL_Texture *tex, int type)
@@ -91,72 +97,27 @@ void Game::handleLeft(Uint32 *msecondCounter)
     // or the edge of the screen
     bool blocked = false;
 
-    SDL_Rect *fallingRects = fallingPiece.getRects();
+    std::vector<SDL_Rect> fallingRects = fallingPiece.getRects();
     for (int i = 0; i < 4; i++)
     {
         SDL_Rect fallingRect = fallingRects[i];
+        // get the absolute coords of the rects
         float fY = fallingPiece.getY() + fallingRect.y;
         float fX = fallingPiece.getX() + fallingRect.x;
+        // get the grid coordinates
+        int gridX = fX / BLOCK_SIZE;
+        int gridY = fY / BLOCK_SIZE;
 
-        for (Piece piece : stationaryPieces)
-        {
-            SDL_Rect *stationaryRects = piece.getRects();
-            for (int j = 0; j < 4; j++)
-            {
-                SDL_Rect stationaryRect = stationaryRects[j];
-                float pX = piece.getX() + stationaryRect.x;
-                float pY = piece.getY() + stationaryRect.y;
-                float pH = stationaryRect.h;
-                float pW = stationaryRect.w;
-
-                if ((pY <= fY &&
-                     fY < pY + pH &&
-                     fX - BLOCK_SIZE < pX + pW) ||
-                    fX - BLOCK_SIZE < 0)
-                {
-                    // Collision detected
-                    blocked = true;
-                    std::cout << "blocked by piece" << std::endl;
-                    break;
-                }
-            }
-
-            if (blocked)
-            {
-                break;
-            }
+        if(gridX - 1 < 0 ) {
+            blocked = true;
+            break;
         }
-
-        for (Bucket bucket : buckets)
+        if (grid[gridX - 1][gridY])
         {
-            std::vector<SDL_Rect> bucketRects = bucket.getRects();
-
-            for (SDL_Rect bucketRect : bucketRects)
-            {
-                float bX = bucketRect.x;
-                float bY = bucketRect.y;
-                float bW = bucketRect.w;
-                float bH = bucketRect.h;
-
-                if (fX >= bX + bW &&
-                    fX - BLOCK_SIZE < bX + bW &&
-                    fY >= bY &&
-                    fY < bY + bH)
-                {
-                    blocked = true;
-                    break;
-                }
-
-                if (blocked)
-                {
-                    break;
-                }
-            }
-            if (blocked)
-            {
-                break;
-            }
+            blocked = true;
+            break;
         }
+        
     }
     if (!blocked)
     {
@@ -171,7 +132,7 @@ void Game::handleRight(Uint32 *msecondCounter)
     // check if there is a piece to the right of us blocking the way
     // or the edge of the screen
     bool blocked = false;
-    SDL_Rect *fallingRects = fallingPiece.getRects();
+    std::vector<SDL_Rect> fallingRects = fallingPiece.getRects();
 
     for (int i = 0; i < 4; i++)
     {
@@ -179,65 +140,19 @@ void Game::handleRight(Uint32 *msecondCounter)
         // get the absolute coords of the rects
         float fY = fallingPiece.getY() + fallingRect.y;
         float fX = fallingPiece.getX() + fallingRect.x;
-        float fW = fallingRect.w;
 
-        for (Piece piece : stationaryPieces)
-        {
-            SDL_Rect *stationaryRects = piece.getRects();
-            for (int j = 0; j < 4; j++)
-            {
-                SDL_Rect stationaryRect = stationaryRects[j];
-                float pX = piece.getX() + stationaryRect.x;
-                float pY = piece.getY() + stationaryRect.y;
-                float pH = stationaryRect.h;
+        // get the grid coordinates
+        int gridX = fX / BLOCK_SIZE;
+        int gridY = fY / BLOCK_SIZE;
 
-                if ((pY <= fY &&
-                     fY < pY + pH &&
-                     fX + fW + BLOCK_SIZE > pX) ||
-                    fX + fW + BLOCK_SIZE > width)
-                {
-                    // Collision detected
-                    blocked = true;
-                    std::cout << "blocked by piece" << std::endl;
-                    break;
-                }
-            }
-
-            if (blocked)
-            {
-                break;
-            }
+        if(gridX + 1 >= width / BLOCK_SIZE) {
+            blocked = true;
+            break;
         }
-
-        for (Bucket bucket : buckets)
+        if (grid[gridX + 1][gridY])
         {
-            std::vector<SDL_Rect> bucketRects = bucket.getRects();
-
-            for (SDL_Rect bucketRect : bucketRects)
-            {
-                float bX = bucketRect.x;
-                float bY = bucketRect.y;
-                float bH = bucketRect.h;
-
-                if (fX < bX &&
-                    fX + BLOCK_SIZE >= bX &&
-                    fY >= bY &&
-                    fY < bY + bH)
-                {
-                    blocked = true;
-                    break;
-                }
-
-                if (blocked)
-                {
-                    break;
-                }
-            }
-
-            if (blocked)
-            {
-                break;
-            }
+            blocked = true;
+            break;
         }
     }
 
@@ -254,7 +169,7 @@ void Game::handleDown(Uint32 *msecondCounter)
     // check if there is a piece below us blocking the way or the bottom of the screen
     // known bug: holding down the down arrow lets you go past the bottom
     bool blocked = false;
-    SDL_Rect *fallingRects = fallingPiece.getRects();
+    std::vector<SDL_Rect> fallingRects = fallingPiece.getRects();
 
     for (int i = 0; i < 4; i++)
     {
@@ -262,69 +177,18 @@ void Game::handleDown(Uint32 *msecondCounter)
         // get the absolute coords of the rects
         float fY = fallingPiece.getY() + fallingRect.y;
         float fX = fallingPiece.getX() + fallingRect.x;
-        float fW = fallingRect.w;
-        float fH = fallingRect.h;
+        
+        // get the grid coordinates
+        int gridX = fX / BLOCK_SIZE;
+        int gridY = fY / BLOCK_SIZE;
 
-        for (Piece piece : stationaryPieces)
-        {
-            SDL_Rect *stationaryRects = piece.getRects();
-            for (int j = 0; j < 4; j++)
-            {
-                SDL_Rect stationaryRect = stationaryRects[j];
-                float pX = piece.getX() + stationaryRect.x;
-                float pY = piece.getY() + stationaryRect.y;
-                float pW = stationaryRect.w;
-
-                if ((fY + fH >= pY &&
-                     fX >= pX &&
-                     fX + fW <= pX + pW) ||
-                    fY + fH + BLOCK_SIZE >= height)
-                {
-                    // Collision detected
-                    blocked = true;
-                    std::cout << "blocked by piece" << std::endl;
-                    break;
-                }
-            }
-
-            if (blocked)
-            {
-                break;
-            }
+        if(gridY + 1 >= height / BLOCK_SIZE) {
+            blocked = true;
+            break;
         }
-
-        for (Bucket bucket : buckets)
+        if (grid[gridX][gridY + 1])
         {
-            std::vector<SDL_Rect> bucketRects = bucket.getRects();
-
-            for (SDL_Rect bucketRect : bucketRects)
-            {
-                float bX = bucketRect.x;
-                float bY = bucketRect.y;
-                float bW = bucketRect.w;
-
-                if (fY + fH >= bY &&
-                    fX >= bX &&
-                    fX + fW <= bX + bW)
-                {
-                    blocked = true;
-                    break;
-                }
-
-                if (blocked)
-                {
-                    break;
-                }
-            }
-
-            if (blocked)
-            {
-                break;
-            }
-        }
-
-        if (blocked)
-        {
+            blocked = true;
             break;
         }
     }
@@ -341,77 +205,14 @@ void Game::handleRotate(Uint32 *msecondCounter)
 {
     std::cout << "rotating" << std::endl;
 
-    // Check if we are allowed to rotate
     bool blocked = false;
-    std::array<int, 8> coords = fallingPiece.coordinatesOfCWRotation();
-    for (int i = 0; i < 8; i += 2)
-    {
-        int x = fallingPiece.getX() + coords[i]; // Rect coords are defined as relative to the piece
-        int y = fallingPiece.getY() + coords[i + 1];
-        if (x < 0 || x >= width || y < 0 || y >= height)
-        { // out of bounds
-            std::cout << "rotation blocked: out of bounds" << std::endl;
-            std::cout << "x: " << x << " y: " << y << std::endl;
-            blocked = true;
-            break;
-        }
-
-        for (Piece piece : stationaryPieces)
-        {
-            SDL_Rect *rects = piece.getRects();
-            for (int j = 0; j < 4; j++)
-            {
-                SDL_Rect rect = rects[j];
-                if (x >= piece.getX() + rect.x &&
-                    x < piece.getX() + rect.x + rect.w &&
-                    y >= piece.getY() + rect.y &&
-                    y < piece.getY() + rect.y + rect.h)
-                {
-                    std::cout << "rotation blocked: piece in the way" << std::endl;
-                    blocked = true;
-                    break;
-                }
-            }
-            if (blocked)
-            {
-                break;
-            }
-        }
-
-        if (blocked)
-        {
-            break;
-        }
-
-        for (Bucket bucket : buckets)
-        {
-            std::vector<SDL_Rect> bucketRects = bucket.getRects();
-
-            for (SDL_Rect bucketRect : bucketRects)
-            {
-                if (x >= bucketRect.x &&
-                    x < bucketRect.x + bucketRect.w &&
-                    y >= bucketRect.y &&
-                    y < bucketRect.y + bucketRect.h)
-                {
-                    std::cout << "rotation blocked: bucket in the way" << std::endl;
-                    blocked = true;
-                    break;
-                }
-            }
-            if (blocked)
-            {
-                break;
-            }
-        }
-    }
+    // TODO FIX
     if (!blocked)
     {
         // The piece should only move down once we haven't touched it for a bit to give us a chance to move
         *msecondCounter = 0;
         fallingPiece.rotateClockWise();
     }
-    
 }
 
 void Game::handleEvents(Uint32 *msecondCounter)
@@ -508,86 +309,38 @@ void Game::handleEvents(Uint32 *msecondCounter)
 
 void Game::update(Uint32 *msecondCounter)
 {
+    //print debug
+    
     bool collision = false;
 
     for (int j = 0; j < 4; j++)
     {
         SDL_Rect fallingRect = fallingPiece.getRects()[j];
-
+        
+        // get the absolute coords of the rects
         float fY = fallingPiece.getY() + fallingRect.y;
         float fX = fallingPiece.getX() + fallingRect.x;
-        float fW = fallingRect.w;
-        float fH = fallingRect.h;
 
-        for (int i = 0; i < (int)stationaryPieces.size(); i++)
+        // get the grid coordinates
+        int gridX = int(fX / BLOCK_SIZE);
+        int gridY = int(fY / BLOCK_SIZE);
+
+        if (gridY + 1 >= int(height / BLOCK_SIZE))
         {
-            Piece piece = stationaryPieces[i];
-            for (int k = 0; k < 4; k++)
-            {
-                SDL_Rect stationaryRect = piece.getRects()[k];
-
-                float pX = piece.getX() + stationaryRect.x;
-                float pY = piece.getY() + stationaryRect.y;
-                float pH = stationaryRect.h;
-                float pW = stationaryRect.w;
-
-                // the x/y in rect is only relative to the piece so you have to add it to the x/y of the piece
-
-                if (fY + fH + BLOCK_SIZE > pY &&
-                    !(fY > pY + pH - 1) &&
-                    fX < pX + pW &&
-                    fX + fW > pX)
-                {
-                    // Collision detected
-                    collision = true;
-                    break;
-                }
-            }
-            if (collision)
-                break;
-        }
-        if (collision)
+            collision = true;
             break;
-
-        for (Bucket bucket : buckets)
-        {
-            std::vector<SDL_Rect> bucketRects = bucket.getRects();
-
-            for (SDL_Rect bucketRect : bucketRects)
-            {
-                float bX = bucketRect.x;
-                float bY = bucketRect.y;
-                float bW = bucketRect.w;
-                float bH = bucketRect.h;
-
-                if (fY + fH + BLOCK_SIZE > bY &&
-                    !(fY > bY + bH - 1) &&
-                    fX < bX + bW &&
-                    fX + fW > bX)
-                {
-                    collision = true;
-                    break;
-                }
-            }
         }
-        if (collision)
-            break;
-    }
 
-    bool bottomOfScreen = false;
-    for (int i = 0; i < 4; i++)
-    {
-        // check if any of the squares of our piece touch the bottom edge of the screen
-        SDL_Rect fallingRect = fallingPiece.getRects()[i];
-        if (fallingPiece.getY() + fallingRect.y + BLOCK_SIZE >= height)
+        std::cout << "gridX: " << gridX << " gridY: " << gridY << grid.size() << std::endl;
+        if (grid[gridX][gridY + 1])
         {
-            std::cout << "touched bottom" << std::endl;
-            bottomOfScreen = true;
+            std::cout << "hello" << std::endl;
+            collision = true;
             break;
         }
     }
 
-    if (!collision && !bottomOfScreen)
+    if (!collision)
     {
 
         if (*msecondCounter >= constants::ADJUSTING_TIME)
@@ -602,8 +355,26 @@ void Game::update(Uint32 *msecondCounter)
         if (*msecondCounter >= constants::ADJUSTING_TIME)
         { // give player last chance to move into small gap for example
             std::cout << "collided" << std::endl;
+            
+            // update the grid
+            std::vector<SDL_Rect> fallingRects = fallingPiece.getRects();
+            for (int i = 0; i < 4; i++)
+            {
+                SDL_Rect fallingRect = fallingRects[i];
+                // get the absolute coords of the rects
+                float fY = fallingPiece.getY() + fallingRect.y;
+                float fX = fallingPiece.getX() + fallingRect.x;
+
+                // get the grid coordinates
+                int gridX = fX / BLOCK_SIZE;
+                int gridY = fY / BLOCK_SIZE;
+
+                grid[gridX][gridY] = true;
+            }
+
             Piece oldFallingPiece = fallingPiece;
             stationaryPieces.push_back(oldFallingPiece);
+
             // Spawn a new piece
             SDL_Texture *tex = loadTexture("textures/I.png");
             initPiece(tex, 1);
@@ -624,9 +395,6 @@ SDL_Texture *Game::loadTexture(const char *filePath)
     return texture;
 }
 
-void Game::changeBlockSize(int newBlockSize) {
-    BLOCK_SIZE = newBlockSize;
-}
 
 bool Game::running()
 {
@@ -641,6 +409,36 @@ void Game::clear()
 void Game::present()
 {
     SDL_RenderPresent(renderer);
+}
+
+void Game::fillGridHelper(Bucket bucket) {
+    std::vector<SDL_Rect> rects = bucket.getRects();
+    for(SDL_Rect rect : rects) {
+        // since bucket rects have varying sizes we first have to get width and height
+        int width = rect.w;
+        int height = rect.h;
+        int x = rect.x;
+        int y = rect.y;
+        int col = int(x/BLOCK_SIZE);
+        int row = int(y/BLOCK_SIZE);
+        int numOfCols = int(width/BLOCK_SIZE);
+        int numOfRows = int(height/BLOCK_SIZE);
+
+        for(int i = 0; i < numOfRows; i++) {
+            for(int j = 0; j < numOfCols; j++) {
+                //print debug
+                std::cout << "row: " << row + i << " col: " << col + j << std::endl;
+                grid[col + j][row + i] = true;
+            }
+        }
+    }
+
+}
+
+
+void Game::clearRows(std::vector<int> filledRows)
+{
+    
 }
 
 void Game::render(std::vector<Bucket> buckets)
@@ -669,7 +467,7 @@ void Game::render(std::vector<Bucket> buckets)
 
 void Game::render(Piece piece)
 {
-    SDL_Rect *rects = piece.getRects(); // the four blocks that make up our shape
+    std::vector<SDL_Rect> rects = piece.getRects(); // the four blocks that make up our shape
     SDL_Texture *texture = piece.getTexture();
 
     for (int i = 0; i < 4; i++)

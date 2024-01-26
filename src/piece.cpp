@@ -1,6 +1,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <iostream>
+#include <vector>
 #include <array>
 
 #include "../include/piece.hpp"
@@ -111,11 +112,10 @@ Piece::Piece(float x, float y, int rotation, int type, SDL_Texture* texture) {
 
     }
 
-    rects[0] = blockOne;
-    rects[1] = blockTwo;
-    rects[2] = blockThree;
-    rects[3] = blockFour;
-
+    rects.push_back(blockOne);
+    rects.push_back(blockTwo);
+    rects.push_back(blockThree);
+    rects.push_back(blockFour);
 }
 
 float Piece::getX() {
@@ -146,7 +146,11 @@ SDL_Texture* Piece::getTexture() {
     return this->texture;
 }
 
-SDL_Rect* Piece::getRects() {
+void Piece::setRects(std::vector<SDL_Rect> newRects) {
+    this->rects = newRects;
+}
+
+std::vector<SDL_Rect> Piece::getRects() {
     return this->rects;
 }
 
