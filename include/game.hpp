@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <vector>
+#include <set>
 #include <SDL2/SDL.h>
 
 #include "../include/piece.hpp"
@@ -23,10 +24,10 @@ struct Field {
 class Game {
 
 public:
+    std::string fieldToString(const Field& field);
     void init(const char* title, int x, int y, int width, int height, int blocksize, bool fullscreen);
     void initPiece(SDL_Texture* tex, int type);
     Piece getFalling();
-    std::vector<Piece> getStationary();
     void setBuckets(std::vector<Bucket> buckets);
     void handleEvents(Uint32* msecondCounter);
     void update(Uint32* msecondCounter);
@@ -36,10 +37,10 @@ public:
     bool running();
     void clear();
     void present();
-    void clearRows(std::vector<int> filledRows);
     void renderFalling(Piece piece);
     void renderAll();
     void clean();
+    
     
 
 
@@ -50,7 +51,6 @@ private:
     int width;
     int height;
     Piece fallingPiece;
-    std::vector<Piece> stationaryPieces;
     std::vector<Bucket> buckets;
     std::vector<std::vector<Field>> grid;
     void handleLeft(Uint32* msecondCounter);

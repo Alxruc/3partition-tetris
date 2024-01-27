@@ -47,7 +47,6 @@ int main() {
         game->handleEvents(msecondCounter);
         game->update(msecondCounter);
         Piece fallingPiece = game->getFalling();
-        std::vector<Piece> stationaryPieces = game->getStationary();
 
         game->clear();
         game->renderFalling(fallingPiece);   

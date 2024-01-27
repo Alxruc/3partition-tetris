@@ -2,10 +2,12 @@
 #include <SDL2/SDL_image.h>
 #include <iostream>
 #include <algorithm>
+#include <sstream>
 
 #include "../include/game.hpp"
 #include "../include/constants.hpp"
 #include "../include/bucket.hpp"
+#include "../include/level.hpp"
 
 SDL_Texture *I_tex;
 SDL_Texture *Sq_tex;
@@ -17,6 +19,12 @@ SDL_Texture *T_tex;
 
 
 int BLOCK_SIZE = constants::DEFAULT_BLOCK_SIZE;
+
+std::string Game::fieldToString(const Field& field) {
+    std::stringstream ss;
+    ss << "{" << field.x << "," << field.y << "," << field.w << "," << field.h << "," << field.occupied << "}";
+    return ss.str();
+}
 
 void Game::init(const char *title, int x, int y, int width, int height, int blocksize, bool fullscreen)
 {
@@ -81,10 +89,6 @@ Piece Game::getFalling()
     return this->fallingPiece;
 }
 
-std::vector<Piece> Game::getStationary()
-{
-    return this->stationaryPieces;
-};
 
 void Game::setBuckets(std::vector<Bucket> buckets)
 {
@@ -385,8 +389,11 @@ void Game::update(Uint32 *msecondCounter)
                 grid[gridY][gridX] = {gridX * BLOCK_SIZE, gridY * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE, true, fallingPiece.getTexture()};
             }
 
-            Piece oldFallingPiece = fallingPiece;
-            stationaryPieces.push_back(oldFallingPiece);
+            // check if there are any rows that need clearing
+            std::set<int> filledRows = whichLinesNeedClearing(grid, fallingPiece, BLOCK_SIZE);
+            if(filledRows.size() > 0) {
+                clearRows(&grid, filledRows);
+            }
 
             // Spawn a new piece
             SDL_Texture *tex = loadTexture("textures/I.png");
@@ -395,6 +402,8 @@ void Game::update(Uint32 *msecondCounter)
         }
     }
 }
+
+
 
 SDL_Texture *Game::loadTexture(const char *filePath)
 {
@@ -428,28 +437,9 @@ void Game::fillGridHelper(Bucket bucket) {
     std::vector<SDL_Rect> rects = bucket.getRects();
     for(SDL_Rect rect : rects) {
         // since bucket rects have varying sizes we first have to get width and height
-        int width = rect.w;
-        int height = rect.h;
-        int x = rect.x;
-        int y = rect.y;
-        int col = int(x/BLOCK_SIZE);
-        int row = int(y/BLOCK_SIZE);
-        int numOfCols = int(width/BLOCK_SIZE);
-        int numOfRows = int(height/BLOCK_SIZE);
-
-        for(int i = 0; i < numOfRows; i++) {
-            for(int j = 0; j < numOfCols; j++) {
-                grid[row + i][col + j] = {col * BLOCK_SIZE, row * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE, true, bucket.getTexture()};
-            }
-        }
+        grid[int(rect.y / BLOCK_SIZE)][int(rect.x / BLOCK_SIZE)] = {rect.x, rect.y, rect.w, rect.h, true, bucket.getTexture()};
     }
 
-}
-
-
-void Game::clearRows(std::vector<int> filledRows)
-{
-    
 }
 
 void Game::renderFalling(Piece piece)
