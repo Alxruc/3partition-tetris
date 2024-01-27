@@ -50,13 +50,8 @@ int main() {
         std::vector<Piece> stationaryPieces = game->getStationary();
 
         game->clear();
-        game->render(fallingPiece);   
-        game->render(buckets);
-
-        for (Piece piece : stationaryPieces) {
-            game->render(piece);
-        }
-
+        game->renderFalling(fallingPiece);   
+        game->renderAll();
         game->present();
     }
 

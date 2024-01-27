@@ -15,6 +15,7 @@ SDL_Texture *LS_tex;
 SDL_Texture *RS_tex;
 SDL_Texture *T_tex;
 
+
 int BLOCK_SIZE = constants::DEFAULT_BLOCK_SIZE;
 
 void Game::init(const char *title, int x, int y, int width, int height, int blocksize, bool fullscreen)
@@ -65,14 +66,13 @@ void Game::init(const char *title, int x, int y, int width, int height, int bloc
     }
     BLOCK_SIZE = blocksize;
 
-    std::cout << "width: " << width / BLOCK_SIZE << " height: " << height / BLOCK_SIZE << std::endl;
 
-    grid = std::vector<std::vector<bool>>(width / BLOCK_SIZE, std::vector<bool>(height / BLOCK_SIZE, false));
+    grid = std::vector<std::vector<Field>>(height/BLOCK_SIZE, std::vector<Field>(width/BLOCK_SIZE, {0,0,0,0,false,nullptr}));
 }
 
 void Game::initPiece(SDL_Texture *tex, int type)
 {
-    int center = (width / 2 / BLOCK_SIZE) * BLOCK_SIZE; // make it so it isnt a small offset with different BLOCK_SIZES
+    int center = (width / 2 / BLOCK_SIZE) * BLOCK_SIZE; // make it so it isnt a small offset in case of different BLOCK_SIZES
     fallingPiece = Piece(center, 0, 0, type, tex);
 }
 
@@ -112,7 +112,7 @@ void Game::handleLeft(Uint32 *msecondCounter)
             blocked = true;
             break;
         }
-        if (grid[gridX - 1][gridY])
+        if (grid[gridY][gridX - 1].occupied)
         {
             blocked = true;
             break;
@@ -149,7 +149,7 @@ void Game::handleRight(Uint32 *msecondCounter)
             blocked = true;
             break;
         }
-        if (grid[gridX + 1][gridY])
+        if (grid[gridY][gridX + 1].occupied)
         {
             blocked = true;
             break;
@@ -167,7 +167,6 @@ void Game::handleRight(Uint32 *msecondCounter)
 void Game::handleDown(Uint32 *msecondCounter)
 {
     // check if there is a piece below us blocking the way or the bottom of the screen
-    // known bug: holding down the down arrow lets you go past the bottom
     bool blocked = false;
     std::vector<SDL_Rect> fallingRects = fallingPiece.getRects();
 
@@ -186,7 +185,7 @@ void Game::handleDown(Uint32 *msecondCounter)
             blocked = true;
             break;
         }
-        if (grid[gridX][gridY + 1])
+        if (grid[gridY + 1][gridX].occupied)
         {
             blocked = true;
             break;
@@ -203,10 +202,28 @@ void Game::handleDown(Uint32 *msecondCounter)
 
 void Game::handleRotate(Uint32 *msecondCounter)
 {
-    std::cout << "rotating" << std::endl;
-
     bool blocked = false;
-    // TODO FIX
+    
+    std::array<int, 8> coords = fallingPiece.coordinatesOfCWRotation();
+    for (int i = 0; i < 4; i++)
+    {
+        int x = fallingPiece.getX() + coords[i * 2];
+        int y = fallingPiece.getY() + coords[i * 2 + 1];
+
+        int gridX = x / BLOCK_SIZE;
+        int gridY = y / BLOCK_SIZE;
+
+        if (gridX < 0 || gridX >= width / BLOCK_SIZE || gridY < 0 || gridY >= height / BLOCK_SIZE)
+        {
+            blocked = true;
+            break;
+        }
+        if (grid[gridY][gridX].occupied)
+        {
+            blocked = true;
+            break;
+        }
+    }
     if (!blocked)
     {
         // The piece should only move down once we haven't touched it for a bit to give us a chance to move
@@ -309,7 +326,6 @@ void Game::handleEvents(Uint32 *msecondCounter)
 
 void Game::update(Uint32 *msecondCounter)
 {
-    //print debug
     
     bool collision = false;
 
@@ -331,10 +347,8 @@ void Game::update(Uint32 *msecondCounter)
             break;
         }
 
-        std::cout << "gridX: " << gridX << " gridY: " << gridY << grid.size() << std::endl;
-        if (grid[gridX][gridY + 1])
+        if (grid[gridY + 1][gridX].occupied)
         {
-            std::cout << "hello" << std::endl;
             collision = true;
             break;
         }
@@ -354,7 +368,6 @@ void Game::update(Uint32 *msecondCounter)
         // Add the falling piece to the stationary pieces
         if (*msecondCounter >= constants::ADJUSTING_TIME)
         { // give player last chance to move into small gap for example
-            std::cout << "collided" << std::endl;
             
             // update the grid
             std::vector<SDL_Rect> fallingRects = fallingPiece.getRects();
@@ -369,7 +382,7 @@ void Game::update(Uint32 *msecondCounter)
                 int gridX = fX / BLOCK_SIZE;
                 int gridY = fY / BLOCK_SIZE;
 
-                grid[gridX][gridY] = true;
+                grid[gridY][gridX] = {gridX * BLOCK_SIZE, gridY * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE, true, fallingPiece.getTexture()};
             }
 
             Piece oldFallingPiece = fallingPiece;
@@ -426,9 +439,7 @@ void Game::fillGridHelper(Bucket bucket) {
 
         for(int i = 0; i < numOfRows; i++) {
             for(int j = 0; j < numOfCols; j++) {
-                //print debug
-                std::cout << "row: " << row + i << " col: " << col + j << std::endl;
-                grid[col + j][row + i] = true;
+                grid[row + i][col + j] = {col * BLOCK_SIZE, row * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE, true, bucket.getTexture()};
             }
         }
     }
@@ -441,31 +452,7 @@ void Game::clearRows(std::vector<int> filledRows)
     
 }
 
-void Game::render(std::vector<Bucket> buckets)
-{
-    for (Bucket bucket : buckets)
-    {
-        std::vector<SDL_Rect> rects = bucket.getRects();
-        SDL_Texture *texture = bucket.getTexture();
-
-        for (SDL_Rect rect : rects)
-        {
-            SDL_Rect src;
-            src.x = 0;
-            src.y = 0;
-            src.w = rect.w;
-            src.h = rect.h;
-
-            SDL_Rect dst = src;
-            dst.x = rect.x;
-            dst.y = rect.y;
-
-            SDL_RenderCopy(renderer, texture, &src, &dst);
-        }
-    }
-}
-
-void Game::render(Piece piece)
+void Game::renderFalling(Piece piece)
 {
     std::vector<SDL_Rect> rects = piece.getRects(); // the four blocks that make up our shape
     SDL_Texture *texture = piece.getTexture();
@@ -484,6 +471,25 @@ void Game::render(Piece piece)
         dst.y = piece.getY() + rect.y; // in rect.x and rect.y the relative coordinate to the first one is saved
 
         SDL_RenderCopy(renderer, texture, &src, &dst);
+    }
+}
+
+void Game::renderAll() {
+    for(size_t i = 0; i < grid.size(); i++) {
+        for(size_t j = 0; j < grid[i].size(); j++) {
+            Field field = grid[i][j];
+            SDL_Rect src;
+            src.x = 0;
+            src.y = 0;
+            src.w = field.w;
+            src.h = field.h;
+
+            SDL_Rect dst = src;
+            dst.x = field.x;
+            dst.y = field.y;
+
+            SDL_RenderCopy(renderer, field.texture, &src, &dst);
+        }
     }
 }
 

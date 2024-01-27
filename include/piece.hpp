@@ -4,7 +4,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <array>
-
+#include <vector>
 class Piece {
     public:
         Piece() : x(0), y(0), rotation(0), type(0), texture(nullptr) {}; //default constructor

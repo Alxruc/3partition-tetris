@@ -11,6 +11,15 @@
 
 extern int BLOCK_SIZE;
 
+struct Field {
+    int x;
+    int y;
+    int w;
+    int h;
+    bool occupied;
+    SDL_Texture* texture;
+};
+
 class Game {
 
 public:
@@ -28,10 +37,10 @@ public:
     void clear();
     void present();
     void clearRows(std::vector<int> filledRows);
-    void render(std::vector<Bucket> buckets);
-    void render(Piece piece);
+    void renderFalling(Piece piece);
+    void renderAll();
     void clean();
-    std::vector<std::vector<bool>> grid;
+    
 
 
 private:
@@ -43,6 +52,7 @@ private:
     Piece fallingPiece;
     std::vector<Piece> stationaryPieces;
     std::vector<Bucket> buckets;
+    std::vector<std::vector<Field>> grid;
     void handleLeft(Uint32* msecondCounter);
     void handleRight(Uint32* msecondCounter);
     void handleDown(Uint32* msecondCounter);

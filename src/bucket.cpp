@@ -25,28 +25,32 @@ Bucket::Bucket(int T, int bucketNumber, int bottomOfScreen, SDL_Texture* texture
 
     SDL_Rect col1;
     col1.w = BLOCK_SIZE;
-    col1.h = 2 * BLOCK_SIZE;
+    col1.h = BLOCK_SIZE;
     col1.x = bucketNumber * (4 * BLOCK_SIZE); // Each bucket is 4 blocks wide
-    col1.y = bottomOfScreen - col1.h;
+    col1.y = bottomOfScreen - BLOCK_SIZE;
+    rects.push_back(col1);
+    col1.y = bottomOfScreen - (2 * BLOCK_SIZE);
     rects.push_back(col1);
     
     // The repeating part
-    for(int i = 0; i < (T+4); i++) {
+    for(int i = 0; i < (5*T + 18); i++) {
+        SDL_Rect col4;
+        col4.w = BLOCK_SIZE;
+        col4.h = BLOCK_SIZE;
+        col4.x = bucketNumber * (4 * BLOCK_SIZE) + 3 * BLOCK_SIZE;
+        col4.y = bottomOfScreen - (i+1) * BLOCK_SIZE;
+        rects.push_back(col4);
+
+        if(i % 5 == 3 || i % 5 == 4) {
+            continue;
+        }
         SDL_Rect col3;
         col3.w = BLOCK_SIZE;
-        col3.h = 3 * BLOCK_SIZE;
+        col3.h = BLOCK_SIZE;
         col3.x = bucketNumber * (4 * BLOCK_SIZE) + 2 * BLOCK_SIZE;
-        col3.y = bottomOfScreen - (5 * i * BLOCK_SIZE) - (3 * BLOCK_SIZE);
+        col3.y = bottomOfScreen - (i+1) * BLOCK_SIZE;
         rects.push_back(col3);
     }
-
-    // TODO: still causes a small rendering bug, but has correct collision
-    SDL_Rect col4;
-    col4.w = BLOCK_SIZE;
-    col4.h = (5*T + 18) * BLOCK_SIZE;
-    col4.x = bucketNumber * (4 * BLOCK_SIZE) + 3 * BLOCK_SIZE;
-    col4.y = bottomOfScreen - col4.h;
-    rects.push_back(col4);
    
 
 }

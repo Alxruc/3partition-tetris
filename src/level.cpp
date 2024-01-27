@@ -1,63 +1,33 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
-
-#include "../include/bucket.hpp"
-#include "../include/piece.hpp"
-#include "../include/game.hpp"
-
-#include <vector>
 #include <iostream>
 
-std::vector<std::vector<bool>> grid;
+#include "../include/piece.hpp"
+#include "../include/bucket.hpp"
 
-void setupGrid(int width, int height) {
-    int numOfCols = int(width/BLOCK_SIZE);
-    int numOfRows = int(height/BLOCK_SIZE);
-    std::vector<bool> row(numOfCols, false);
-    for(int i = 0; i < numOfRows; i++) {
-        grid.push_back(row);
-    }
-}
+#include "../include/game.hpp"
 
-void updateGrid(Bucket bucket) {
-    std::vector<SDL_Rect> rects = bucket.getRects();
-    for(SDL_Rect rect : rects) {
-        // since bucket rects have varying sizes we first have to get width and height
-        int width = rect.w;
-        int height = rect.h;
-        int x = rect.x;
-        int y = rect.y;
-        int col = int(x/BLOCK_SIZE);
-        int row = int(y/BLOCK_SIZE);
-        int numOfCols = int(width/BLOCK_SIZE);
-        int numOfRows = int(height/BLOCK_SIZE);
 
-        for(int i = 0; i < numOfRows; i++) {
-            for(int j = 0; j < numOfCols; j++) {
-                grid[row + i][col + j] = true;
+std::vector<int> whichLinesNeedClearing(std::vector<std::vector<bool>> grid, Piece piece, int blocksize) {
+    std::vector<int> filledRows;
+    std::vector<SDL_Rect> rects = piece.getRects();
+    for (SDL_Rect rect : rects) {
+        int rectY = (piece.getY() + rect.y) / blocksize;
+
+        bool isRowFilled = true;
+        for (size_t i = 0; i < grid.size(); i++) {
+            if (!grid[rectY][i]) {
+                isRowFilled = false;
+                break;
             }
         }
+        if(isRowFilled) {
+            filledRows.push_back(rectY);
+        }
     }
+    return filledRows;
 }
 
-void updateGrid(Piece piece) {
-    std::vector<SDL_Rect> rects = piece.getRects();
-    for(int i = 0; i < 4; i++) {
-        SDL_Rect rect = rects[i];
-        int x = piece.getX() + rect.x;
-        int y = piece.getY() + rect.y;
-        int col = int(x/BLOCK_SIZE);
-        int row = int(y/BLOCK_SIZE);
-        grid[row][col] = true;
-    }
-}
-
-
-std::vector<int> getToBeClearedRows(Piece fallingPiece, std::vector<Piece> stationaryPieces, std::vector<Bucket> buckets, int width) {
-    // this function only gets called when fallingPiece touched something and will become stationary
-    std::vector<int> clearedRows;
+void clearRows() {
     
-    return clearedRows;
 }
-
-
