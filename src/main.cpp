@@ -10,6 +10,7 @@ const int SCREEN_WIDTH = 800;
 const int SCREEN_HEIGHT = 1000; 
 
 int main() {
+    // TODO at the end: clean this up
 
     game = new Game();
     game->init("Tetris is hard", SDL_WINDOWPOS_CENTERED, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 10, false);
@@ -19,15 +20,17 @@ int main() {
 
     //Load textures
     SDL_Texture* I_tex = game->loadTexture("textures/I.png");
+    SDL_Texture* bucket_tex = game->loadTexture("textures/border_gray.png");
     game->initPiece(I_tex, 1);
 
      std::vector<Bucket> buckets;
 
     for(int s = 0; s < levelmaker->getNumberOfBuckets(); s++) { // Example of how the level will be created
-        Bucket bucket(levelmaker->getT(), s, SCREEN_HEIGHT, game->loadTexture("textures/border_gray.png"));
+        Bucket bucket(levelmaker->getT(), s, SCREEN_HEIGHT, SCREEN_WIDTH, levelmaker->getNumberOfBuckets(), bucket_tex);
         buckets.push_back(bucket);
         game->fillGridHelper(bucket);
     }
+    game->fillGridBorders(SCREEN_WIDTH, SCREEN_HEIGHT, levelmaker->getNumberOfBuckets());
     game->setBuckets(buckets);
 
     Uint32 msecond = 0;
@@ -50,7 +53,7 @@ int main() {
 
         game->clear();
         game->renderFalling(fallingPiece);   
-        game->renderAll();
+        game->renderAll(SCREEN_WIDTH, levelmaker->getNumberOfBuckets());
         game->present();
     }
 

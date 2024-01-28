@@ -33,12 +33,13 @@ public:
     void update(Uint32* msecondCounter);
     SDL_Texture* loadTexture(const char* filePath);
     void changeBlockSize(int newBlockSize);
+    void fillGridBorders(int width, int height, int numberOfBuckets);
     void fillGridHelper(Bucket bucket);
     bool running();
     void clear();
     void present();
     void renderFalling(Piece piece);
-    void renderAll();
+    void renderAll(int width, int numberOfBuckets);
     void clean();
     
     

@@ -16,6 +16,7 @@ SDL_Texture *RG_tex;
 SDL_Texture *LS_tex;
 SDL_Texture *RS_tex;
 SDL_Texture *T_tex;
+std::vector<SDL_Texture *> textures;
 
 
 int BLOCK_SIZE = constants::DEFAULT_BLOCK_SIZE;
@@ -75,12 +76,12 @@ void Game::init(const char *title, int x, int y, int width, int height, int bloc
     BLOCK_SIZE = blocksize;
 
 
-    grid = std::vector<std::vector<Field>>(height/BLOCK_SIZE, std::vector<Field>(width/BLOCK_SIZE, {0,0,0,0,false,nullptr}));
+    grid = std::vector<std::vector<Field>>(int(height/BLOCK_SIZE), std::vector<Field>(int(width/BLOCK_SIZE), {0,0,0,0,false,nullptr}));
 }
 
 void Game::initPiece(SDL_Texture *tex, int type)
 {
-    int center = (width / 2 / BLOCK_SIZE) * BLOCK_SIZE; // make it so it isnt a small offset in case of different BLOCK_SIZES
+    int center = (width / 2 / BLOCK_SIZE) * BLOCK_SIZE;
     fallingPiece = Piece(center, 0, 0, type, tex);
 }
 
@@ -396,8 +397,7 @@ void Game::update(Uint32 *msecondCounter)
             }
 
             // Spawn a new piece
-            SDL_Texture *tex = loadTexture("textures/I.png");
-            initPiece(tex, 1);
+            initPiece(I_tex, 1);
             *msecondCounter = 0;
         }
     }
@@ -413,6 +413,9 @@ SDL_Texture *Game::loadTexture(const char *filePath)
     if (texture == nullptr)
     {
         std::cout << "Couldn't load texture" << std::endl;
+    }
+    else {
+        textures.push_back(texture);
     }
     return texture;
 }
@@ -433,13 +436,27 @@ void Game::present()
     SDL_RenderPresent(renderer);
 }
 
+void Game::fillGridBorders(int width, int height, int numberOfBuckets) {
+    int levelWidth = (numberOfBuckets + 1) * (4 * BLOCK_SIZE) ; // Each bucket is 4 blocks wide + the 4 block wide lock
+    int paddingWidth = (width - levelWidth) / BLOCK_SIZE; // dividing by BLOCK_SIZE to get "grid coordinates"
+
+    for(int i = 0; i < height / BLOCK_SIZE; i++) {
+        for(int j = 0; j < paddingWidth / 2; j++) {
+            grid[i][j] = {j * BLOCK_SIZE, i * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE, true, nullptr};
+        }
+        for(int j = (width / BLOCK_SIZE) - (paddingWidth / 2); j < width / BLOCK_SIZE; j++) {
+            grid[i][j] = {j * BLOCK_SIZE, i * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE, true, nullptr};
+        }
+    }
+    
+}
+
 void Game::fillGridHelper(Bucket bucket) {
     std::vector<SDL_Rect> rects = bucket.getRects();
     for(SDL_Rect rect : rects) {
         // since bucket rects have varying sizes we first have to get width and height
         grid[int(rect.y / BLOCK_SIZE)][int(rect.x / BLOCK_SIZE)] = {rect.x, rect.y, rect.w, rect.h, true, bucket.getTexture()};
     }
-
 }
 
 void Game::renderFalling(Piece piece)
@@ -464,7 +481,7 @@ void Game::renderFalling(Piece piece)
     }
 }
 
-void Game::renderAll() {
+void Game::renderAll(int width, int numberOfBuckets) {
     for(size_t i = 0; i < grid.size(); i++) {
         for(size_t j = 0; j < grid[i].size(); j++) {
             Field field = grid[i][j];
@@ -481,12 +498,54 @@ void Game::renderAll() {
             SDL_RenderCopy(renderer, field.texture, &src, &dst);
         }
     }
+
+    if(height % BLOCK_SIZE != 0) {
+        // in case the height is not a multiple of BLOCK_SIZE we have to render a border at the bottom
+        SDL_Texture* border = loadTexture("textures/border_darkgray.png");
+
+        SDL_Rect src;
+        src.x = 0;
+        src.y = 0;
+        src.w = width;
+        src.h = height % BLOCK_SIZE;
+
+        SDL_Rect dst = src;
+        dst.x = 0;
+        dst.y = height - (height % BLOCK_SIZE);
+
+        SDL_RenderCopy(renderer, border, &src, &dst);
+        SDL_DestroyTexture(border);
+    }
+    // in case the width is not a multiple of BLOCK_SIZE we have to render a border at the right and left side
+    // also we have to render a border incase the number of buckets is low and we want to center the level
+    SDL_Texture* border = loadTexture("textures/border_darkgray.png");
+
+    int levelWidth = (numberOfBuckets + 1) * (4 * BLOCK_SIZE) ; // Each bucket is 4 blocks wide + the 4 block wide lock
+    int paddingWidth = width - levelWidth;
+    int sidePadding = (paddingWidth / 2) - ((paddingWidth / 2) % BLOCK_SIZE);
+
+    SDL_Rect src;
+    src.x = 0;
+    src.y = 0;
+    src.w = sidePadding;
+    src.h = height;
+    SDL_Rect dst = src;
+
+    SDL_RenderCopy(renderer, border, &src, &dst);
+    
+    src.x = width - sidePadding;
+    dst = src;
+    SDL_RenderCopy(renderer, border, &src, &dst);
+    SDL_DestroyTexture(border);
 }
 
 void Game::clean()
 {
     SDL_DestroyWindow(window);
     SDL_DestroyRenderer(renderer);
+    for(SDL_Texture* texture : textures) {
+        SDL_DestroyTexture(texture);
+    }
     SDL_Quit();
     std::cout << "Game Quit" << std::endl;
 }

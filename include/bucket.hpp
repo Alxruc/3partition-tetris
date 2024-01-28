@@ -8,7 +8,7 @@
 
 class Bucket {
     public:
-        Bucket(int T, int bucketNumber, int bottomOfScreen, SDL_Texture* texture);
+        Bucket(int T, int bucketNumber, int bottomOfScreen, int width, int totalNumberOfBuckets, SDL_Texture* texture);
         std::vector<SDL_Rect> getRects();
         SDL_Texture* getTexture();
     private:
