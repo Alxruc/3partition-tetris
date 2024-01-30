@@ -8,6 +8,7 @@
 
 #include "../include/piece.hpp"
 #include "../include/bucket.hpp"
+#include "../include/lock.hpp"
 #include "../include/constants.hpp"
 
 extern int BLOCK_SIZE;
@@ -34,6 +35,7 @@ public:
     SDL_Texture* loadTexture(const char* filePath);
     void changeBlockSize(int newBlockSize);
     void fillGridBorders(int width, int height, int numberOfBuckets);
+    void fillGridHelper(Lock lock);
     void fillGridHelper(Bucket bucket);
     bool running();
     void clear();
@@ -52,7 +54,6 @@ private:
     int width;
     int height;
     Piece fallingPiece;
-    std::vector<Bucket> buckets;
     std::vector<std::vector<Field>> grid;
     void handleLeft(Uint32* msecondCounter);
     void handleRight(Uint32* msecondCounter);

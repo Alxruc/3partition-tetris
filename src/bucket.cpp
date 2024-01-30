@@ -13,7 +13,7 @@ Bucket::Bucket(int T, int bucketNumber, int bottomOfScreen, int width, int total
     this->bucketNumber = bucketNumber;
     this->texture = texture;
 
-    int levelWidth = (totalNumberOfBuckets + 1) * (4 * BLOCK_SIZE) ; // Each bucket is 4 blocks wide + the 4 block wide lock
+    int levelWidth = totalNumberOfBuckets * (4 * BLOCK_SIZE) + 3 * BLOCK_SIZE ; // Each bucket is 4 blocks wide + the 3 block wide lock
 
     // Here we will create the rects for the bucket
     // I am breaking the bucket up into parts to easily construct it 

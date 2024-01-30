@@ -13,25 +13,36 @@ int main() {
     // TODO at the end: clean this up
 
     game = new Game();
-    game->init("Tetris is hard", SDL_WINDOWPOS_CENTERED, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 10, false);
-
     levelmaker = new LevelMaker("demoLevel1");
+    int T = levelmaker->getT();
+    int numOfBuckets = levelmaker->getNumberOfBuckets();
+    int blocksize;
+    int widthDiv = SCREEN_WIDTH / (numOfBuckets * 4 + 3);
+    int heightDiv = SCREEN_HEIGHT / (5 * T + 25); //extra space at the top
+    if(widthDiv < heightDiv) {
+        blocksize = widthDiv;
+    } else {
+        blocksize = heightDiv;
+    }
 
+
+    game->init("Tetris is hard", SDL_WINDOWPOS_CENTERED, 0, SCREEN_WIDTH, SCREEN_HEIGHT, blocksize, false);
+
+    
 
     //Load textures
     SDL_Texture* I_tex = game->loadTexture("textures/I.png");
     SDL_Texture* bucket_tex = game->loadTexture("textures/border_gray.png");
+    
     game->initPiece(I_tex, 1);
 
-     std::vector<Bucket> buckets;
-
-    for(int s = 0; s < levelmaker->getNumberOfBuckets(); s++) { // Example of how the level will be created
-        Bucket bucket(levelmaker->getT(), s, SCREEN_HEIGHT, SCREEN_WIDTH, levelmaker->getNumberOfBuckets(), bucket_tex);
-        buckets.push_back(bucket);
+    for(int s = 0; s < numOfBuckets; s++) { // Example of how the level will be created
+        Bucket bucket(T, s, SCREEN_HEIGHT, SCREEN_WIDTH, numOfBuckets, bucket_tex);
         game->fillGridHelper(bucket);
     }
-    game->fillGridBorders(SCREEN_WIDTH, SCREEN_HEIGHT, levelmaker->getNumberOfBuckets());
-    game->setBuckets(buckets);
+    Lock lock(T, SCREEN_WIDTH, numOfBuckets, SCREEN_HEIGHT, bucket_tex);    
+    game->fillGridHelper(lock);
+    game->fillGridBorders(SCREEN_WIDTH, SCREEN_HEIGHT, numOfBuckets);
 
     Uint32 msecond = 0;
     Uint32* msecondCounter = &msecond;
@@ -53,7 +64,7 @@ int main() {
 
         game->clear();
         game->renderFalling(fallingPiece);   
-        game->renderAll(SCREEN_WIDTH, levelmaker->getNumberOfBuckets());
+        game->renderAll(SCREEN_WIDTH, numOfBuckets);
         game->present();
     }
 

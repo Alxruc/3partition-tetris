@@ -3,11 +3,13 @@
 #include <iostream>
 #include <algorithm>
 #include <sstream>
+#include <cmath>
 
 #include "../include/game.hpp"
 #include "../include/constants.hpp"
 #include "../include/bucket.hpp"
 #include "../include/level.hpp"
+#include "../include/lock.hpp"
 
 SDL_Texture *I_tex;
 SDL_Texture *Sq_tex;
@@ -18,10 +20,10 @@ SDL_Texture *RS_tex;
 SDL_Texture *T_tex;
 std::vector<SDL_Texture *> textures;
 
-
 int BLOCK_SIZE = constants::DEFAULT_BLOCK_SIZE;
 
-std::string Game::fieldToString(const Field& field) {
+std::string Game::fieldToString(const Field &field)
+{
     std::stringstream ss;
     ss << "{" << field.x << "," << field.y << "," << field.w << "," << field.h << "," << field.occupied << "}";
     return ss.str();
@@ -74,9 +76,7 @@ void Game::init(const char *title, int x, int y, int width, int height, int bloc
         isRunning = false;
     }
     BLOCK_SIZE = blocksize;
-
-
-    grid = std::vector<std::vector<Field>>(int(height/BLOCK_SIZE), std::vector<Field>(int(width/BLOCK_SIZE), {0,0,0,0,false,nullptr}));
+    grid = std::vector<std::vector<Field>>(int(height / BLOCK_SIZE), std::vector<Field>(int(width / BLOCK_SIZE), {0, 0, 0, 0, false, nullptr}));
 }
 
 void Game::initPiece(SDL_Texture *tex, int type)
@@ -88,12 +88,6 @@ void Game::initPiece(SDL_Texture *tex, int type)
 Piece Game::getFalling()
 {
     return this->fallingPiece;
-}
-
-
-void Game::setBuckets(std::vector<Bucket> buckets)
-{
-    this->buckets = buckets;
 }
 
 void Game::handleLeft(Uint32 *msecondCounter)
@@ -113,7 +107,8 @@ void Game::handleLeft(Uint32 *msecondCounter)
         int gridX = fX / BLOCK_SIZE;
         int gridY = fY / BLOCK_SIZE;
 
-        if(gridX - 1 < 0 ) {
+        if (gridX - 1 < 0)
+        {
             blocked = true;
             break;
         }
@@ -122,7 +117,6 @@ void Game::handleLeft(Uint32 *msecondCounter)
             blocked = true;
             break;
         }
-        
     }
     if (!blocked)
     {
@@ -150,7 +144,8 @@ void Game::handleRight(Uint32 *msecondCounter)
         int gridX = fX / BLOCK_SIZE;
         int gridY = fY / BLOCK_SIZE;
 
-        if(gridX + 1 >= width / BLOCK_SIZE) {
+        if (gridX + 1 >= width / BLOCK_SIZE)
+        {
             blocked = true;
             break;
         }
@@ -181,12 +176,13 @@ void Game::handleDown(Uint32 *msecondCounter)
         // get the absolute coords of the rects
         float fY = fallingPiece.getY() + fallingRect.y;
         float fX = fallingPiece.getX() + fallingRect.x;
-        
+
         // get the grid coordinates
         int gridX = fX / BLOCK_SIZE;
         int gridY = fY / BLOCK_SIZE;
 
-        if(gridY + 1 >= height / BLOCK_SIZE) {
+        if (gridY + 1 >= height / BLOCK_SIZE)
+        {
             blocked = true;
             break;
         }
@@ -208,7 +204,7 @@ void Game::handleDown(Uint32 *msecondCounter)
 void Game::handleRotate(Uint32 *msecondCounter)
 {
     bool blocked = false;
-    
+
     std::array<int, 8> coords = fallingPiece.coordinatesOfCWRotation();
     for (int i = 0; i < 4; i++)
     {
@@ -331,13 +327,13 @@ void Game::handleEvents(Uint32 *msecondCounter)
 
 void Game::update(Uint32 *msecondCounter)
 {
-    
+
     bool collision = false;
 
     for (int j = 0; j < 4; j++)
     {
         SDL_Rect fallingRect = fallingPiece.getRects()[j];
-        
+
         // get the absolute coords of the rects
         float fY = fallingPiece.getY() + fallingRect.y;
         float fX = fallingPiece.getX() + fallingRect.x;
@@ -373,7 +369,7 @@ void Game::update(Uint32 *msecondCounter)
         // Add the falling piece to the stationary pieces
         if (*msecondCounter >= constants::ADJUSTING_TIME)
         { // give player last chance to move into small gap for example
-            
+
             // update the grid
             std::vector<SDL_Rect> fallingRects = fallingPiece.getRects();
             for (int i = 0; i < 4; i++)
@@ -392,7 +388,8 @@ void Game::update(Uint32 *msecondCounter)
 
             // check if there are any rows that need clearing
             std::set<int> filledRows = whichLinesNeedClearing(grid, fallingPiece, BLOCK_SIZE);
-            if(filledRows.size() > 0) {
+            if (filledRows.size() > 0)
+            {
                 clearRows(&grid, filledRows);
             }
 
@@ -403,8 +400,6 @@ void Game::update(Uint32 *msecondCounter)
     }
 }
 
-
-
 SDL_Texture *Game::loadTexture(const char *filePath)
 {
     SDL_Texture *texture = nullptr;
@@ -414,12 +409,12 @@ SDL_Texture *Game::loadTexture(const char *filePath)
     {
         std::cout << "Couldn't load texture" << std::endl;
     }
-    else {
+    else
+    {
         textures.push_back(texture);
     }
     return texture;
 }
-
 
 bool Game::running()
 {
@@ -436,24 +431,41 @@ void Game::present()
     SDL_RenderPresent(renderer);
 }
 
-void Game::fillGridBorders(int width, int height, int numberOfBuckets) {
-    int levelWidth = (numberOfBuckets + 1) * (4 * BLOCK_SIZE) ; // Each bucket is 4 blocks wide + the 4 block wide lock
-    int paddingWidth = (width - levelWidth) / BLOCK_SIZE; // dividing by BLOCK_SIZE to get "grid coordinates"
+void Game::fillGridBorders(int width, int height, int numberOfBuckets)
+{
+    int levelWidth = numberOfBuckets * (4 * BLOCK_SIZE) + 3 * BLOCK_SIZE; // Each bucket is 4 blocks wide + the 3 block wide lock
+    int paddingWidth = (width - levelWidth) / BLOCK_SIZE;                 // dividing by BLOCK_SIZE to get "grid coordinates"
+    int leftPaddingWidth = paddingWidth / 2;
+    int rightPaddingWidth = paddingWidth - leftPaddingWidth;
 
-    for(int i = 0; i < height / BLOCK_SIZE; i++) {
-        for(int j = 0; j < paddingWidth / 2; j++) {
+    for (int i = 0; i < height / BLOCK_SIZE; i++)
+    {
+        for (int j = 0; j < leftPaddingWidth; j++)
+        {
             grid[i][j] = {j * BLOCK_SIZE, i * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE, true, nullptr};
         }
-        for(int j = (width / BLOCK_SIZE) - (paddingWidth / 2); j < width / BLOCK_SIZE; j++) {
+        for (int j = (width / BLOCK_SIZE) - rightPaddingWidth; j < width / BLOCK_SIZE; j++)
+        {
             grid[i][j] = {j * BLOCK_SIZE, i * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE, true, nullptr};
         }
     }
-    
 }
 
-void Game::fillGridHelper(Bucket bucket) {
+void Game::fillGridHelper(Lock lock)
+{
+    std::vector<SDL_Rect> rects = lock.getRects();
+    for (SDL_Rect rect : rects)
+    {
+        // since lock rects have varying sizes we first have to get width and height
+        grid[int(rect.y / BLOCK_SIZE)][int(rect.x / BLOCK_SIZE)] = {rect.x, rect.y, rect.w, rect.h, true, lock.getTexture()};
+    }
+}
+
+void Game::fillGridHelper(Bucket bucket)
+{
     std::vector<SDL_Rect> rects = bucket.getRects();
-    for(SDL_Rect rect : rects) {
+    for (SDL_Rect rect : rects)
+    {
         // since bucket rects have varying sizes we first have to get width and height
         grid[int(rect.y / BLOCK_SIZE)][int(rect.x / BLOCK_SIZE)] = {rect.x, rect.y, rect.w, rect.h, true, bucket.getTexture()};
     }
@@ -481,9 +493,12 @@ void Game::renderFalling(Piece piece)
     }
 }
 
-void Game::renderAll(int width, int numberOfBuckets) {
-    for(size_t i = 0; i < grid.size(); i++) {
-        for(size_t j = 0; j < grid[i].size(); j++) {
+void Game::renderAll(int width, int numberOfBuckets)
+{
+    for (size_t i = 0; i < grid.size(); i++)
+    {
+        for (size_t j = 0; j < grid[i].size(); j++)
+        {
             Field field = grid[i][j];
             SDL_Rect src;
             src.x = 0;
@@ -499,9 +514,10 @@ void Game::renderAll(int width, int numberOfBuckets) {
         }
     }
 
-    if(height % BLOCK_SIZE != 0) {
+    if (height % BLOCK_SIZE != 0)
+    {
         // in case the height is not a multiple of BLOCK_SIZE we have to render a border at the bottom
-        SDL_Texture* border = loadTexture("textures/border_darkgray.png");
+        SDL_Texture *border = loadTexture("textures/border_darkgray.png");
 
         SDL_Rect src;
         src.x = 0;
@@ -518,23 +534,32 @@ void Game::renderAll(int width, int numberOfBuckets) {
     }
     // in case the width is not a multiple of BLOCK_SIZE we have to render a border at the right and left side
     // also we have to render a border incase the number of buckets is low and we want to center the level
-    SDL_Texture* border = loadTexture("textures/border_darkgray.png");
+    SDL_Texture *border = loadTexture("textures/border_darkgray.png");
 
-    int levelWidth = (numberOfBuckets + 1) * (4 * BLOCK_SIZE) ; // Each bucket is 4 blocks wide + the 4 block wide lock
-    int paddingWidth = width - levelWidth;
-    int sidePadding = (paddingWidth / 2) - ((paddingWidth / 2) % BLOCK_SIZE);
+    // these extra padding and remainder calculations are so that if we have a block size number that doesnt divide the width
+    // nicely, the border will still fit nicely against our blocks
+
+    int levelWidth = numberOfBuckets * (4 * BLOCK_SIZE) + 3 * BLOCK_SIZE; // Each bucket is 4 blocks wide + the 3 block wide lock
+    int paddingWidth = (width - levelWidth) / BLOCK_SIZE;                 // dividing by BLOCK_SIZE to get "grid coordinates"
+    int leftPadding = paddingWidth / 2 * BLOCK_SIZE;                      // convert to pixels
+    int remainder = (width - levelWidth) % BLOCK_SIZE;                     // calculate the remainder
+    int rightPadding = (paddingWidth - paddingWidth / 2) * BLOCK_SIZE + remainder; // add the remainder to rightPadding
 
     SDL_Rect src;
     src.x = 0;
     src.y = 0;
-    src.w = sidePadding;
-    src.h = height;
-    SDL_Rect dst = src;
+
+    SDL_Rect dst;
+    dst.x = 0;
+    dst.y = 0;
+    dst.w = leftPadding;
+    dst.h = height;
 
     SDL_RenderCopy(renderer, border, &src, &dst);
-    
-    src.x = width - sidePadding;
-    dst = src;
+
+    dst.x = width - rightPadding;
+    dst.w = rightPadding;
+
     SDL_RenderCopy(renderer, border, &src, &dst);
     SDL_DestroyTexture(border);
 }
@@ -543,7 +568,8 @@ void Game::clean()
 {
     SDL_DestroyWindow(window);
     SDL_DestroyRenderer(renderer);
-    for(SDL_Texture* texture : textures) {
+    for (SDL_Texture *texture : textures)
+    {
         SDL_DestroyTexture(texture);
     }
     SDL_Quit();
