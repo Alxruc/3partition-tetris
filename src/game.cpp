@@ -79,10 +79,46 @@ void Game::init(const char *title, int x, int y, int width, int height, int bloc
     grid = std::vector<std::vector<Field>>(int(height / BLOCK_SIZE), std::vector<Field>(int(width / BLOCK_SIZE), {0, 0, 0, 0, false, nullptr}));
 }
 
-void Game::initPiece(SDL_Texture *tex, int type)
+void Game::initPiece()
+{
+    if (!pieces.empty())
+    {
+        int next = pieces.front();
+        pieces.pop();
+        initSpecificPiece(next);
+    }
+    // TODO else: level is over
+}
+
+void Game::initSpecificPiece(int type)
 {
     int center = (width / 2 / BLOCK_SIZE) * BLOCK_SIZE;
-    fallingPiece = Piece(center, 0, 0, type, tex);
+    SDL_Texture *texture = nullptr;
+    switch (type)
+    {
+    case 1:
+        texture = I_tex;
+        break;
+    case 2:
+        texture = Sq_tex;
+        break;
+    case 3:
+        texture = LG_tex;
+        break;
+    case 4:
+        texture = RG_tex;
+        break;
+    case 5:
+        texture = LS_tex;
+        break;
+    case 6:
+        texture = RS_tex;
+        break;
+    case 7:
+        texture = T_tex;
+        break;
+    }
+    fallingPiece = Piece(center, 0, 0, type, texture);
 }
 
 Piece Game::getFalling()
@@ -258,7 +294,7 @@ void Game::handleEvents(Uint32 *msecondCounter)
         case SDLK_1:
             if (I_tex != nullptr)
             {
-                this->initPiece(I_tex, 1);
+                this->initSpecificPiece(1);
                 std::cout << "changed piece to I" << std::endl;
             }
             break;
@@ -266,7 +302,7 @@ void Game::handleEvents(Uint32 *msecondCounter)
         case SDLK_2:
             if (Sq_tex != nullptr)
             {
-                initPiece(Sq_tex, 2);
+                initSpecificPiece(2);
                 std::cout << "changed piece to Sq" << std::endl;
             }
             break;
@@ -274,7 +310,7 @@ void Game::handleEvents(Uint32 *msecondCounter)
         case SDLK_3:
             if (LG_tex != nullptr)
             {
-                initPiece(LG_tex, 3);
+                initSpecificPiece(3);
                 std::cout << "changed piece to LG" << std::endl;
             }
             break;
@@ -282,7 +318,7 @@ void Game::handleEvents(Uint32 *msecondCounter)
         case SDLK_4:
             if (RG_tex != nullptr)
             {
-                initPiece(RG_tex, 4);
+                initSpecificPiece(4);
                 std::cout << "changed piece to RG" << std::endl;
             }
             break;
@@ -290,7 +326,7 @@ void Game::handleEvents(Uint32 *msecondCounter)
         case SDLK_5:
             if (LS_tex != nullptr)
             {
-                initPiece(LS_tex, 5);
+                initSpecificPiece(5);
                 std::cout << "changed piece to LS" << std::endl;
             }
             break;
@@ -298,7 +334,7 @@ void Game::handleEvents(Uint32 *msecondCounter)
         case SDLK_6:
             if (RS_tex != nullptr)
             {
-                initPiece(RS_tex, 6);
+                initSpecificPiece(6);
                 std::cout << "changed piece to RS" << std::endl;
             }
             break;
@@ -306,7 +342,7 @@ void Game::handleEvents(Uint32 *msecondCounter)
         case SDLK_7:
             if (T_tex != nullptr)
             {
-                initPiece(T_tex, 7);
+                initSpecificPiece(7);
                 std::cout << "changed piece to T" << std::endl;
             }
             break;
@@ -394,7 +430,7 @@ void Game::update(Uint32 *msecondCounter)
             }
 
             // Spawn a new piece
-            initPiece(I_tex, 1);
+            initPiece();
             *msecondCounter = 0;
         }
     }
@@ -414,6 +450,11 @@ SDL_Texture *Game::loadTexture(const char *filePath)
         textures.push_back(texture);
     }
     return texture;
+}
+
+void Game::setPieces(std::queue<int> pieces)
+{
+    this->pieces = pieces;
 }
 
 bool Game::running()
@@ -539,10 +580,10 @@ void Game::renderAll(int width, int numberOfBuckets)
     // these extra padding and remainder calculations are so that if we have a block size number that doesnt divide the width
     // nicely, the border will still fit nicely against our blocks
 
-    int levelWidth = numberOfBuckets * (4 * BLOCK_SIZE) + 3 * BLOCK_SIZE; // Each bucket is 4 blocks wide + the 3 block wide lock
-    int paddingWidth = (width - levelWidth) / BLOCK_SIZE;                 // dividing by BLOCK_SIZE to get "grid coordinates"
-    int leftPadding = paddingWidth / 2 * BLOCK_SIZE;                      // convert to pixels
-    int remainder = (width - levelWidth) % BLOCK_SIZE;                     // calculate the remainder
+    int levelWidth = numberOfBuckets * (4 * BLOCK_SIZE) + 3 * BLOCK_SIZE;          // Each bucket is 4 blocks wide + the 3 block wide lock
+    int paddingWidth = (width - levelWidth) / BLOCK_SIZE;                          // dividing by BLOCK_SIZE to get "grid coordinates"
+    int leftPadding = paddingWidth / 2 * BLOCK_SIZE;                               // convert to pixels
+    int remainder = (width - levelWidth) % BLOCK_SIZE;                             // calculate the remainder
     int rightPadding = (paddingWidth - paddingWidth / 2) * BLOCK_SIZE + remainder; // add the remainder to rightPadding
 
     SDL_Rect src;

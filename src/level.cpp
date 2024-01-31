@@ -32,6 +32,7 @@ std::set<int> whichLinesNeedClearing(std::vector<std::vector<Field>> grid, Piece
 }
 
 void clearRows(std::vector<std::vector<Field>> *gridPtr, std::set<int> filledRows) {
+    // Known bug: If row is cleared the top border doesnt have collision because it is simply filled with emptiness
 
     for (int row : filledRows) {
         std::cout << "Clearing row " << row << std::endl;

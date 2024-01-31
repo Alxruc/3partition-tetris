@@ -53,6 +53,34 @@ int LevelMaker::calcNumberOfBuckets(std::vector<int> numbers) {
     }
 }
 
+std::queue<int> LevelMaker::createPieceVector() {
+    std::queue<int> pieceVector;
+    for(size_t i = 0; i < numbers.size(); i++) {
+        // Initiator 
+        pieceVector.push(4); //RG
+        
+        // Filler
+        for(int j = 0; j < numbers[i]; j++) {
+            pieceVector.push(2); //Sq
+            pieceVector.push(3); //LG
+            pieceVector.push(2); //Sq
+        }
+
+        // Terminator
+        pieceVector.push(2);
+        pieceVector.push(1);
+    }
+    // Filling the buckets
+    for(size_t i = 0; i < numbers.size()/3; i++) {
+        pieceVector.push(4); //RG 
+    }
+    pieceVector.push(7); //T
+    for(int i = 0; i < (5*T + 16) / 4; i++) {
+        pieceVector.push(1); //I
+    }
+    return pieceVector;
+}
+
 int LevelMaker::getT() {
     return T;
 }

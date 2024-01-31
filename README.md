@@ -6,6 +6,8 @@ A tetris clone based on the 3-PARTITION reduction layed out in: Breukelaar, R., 
 
 This program creates a tetris level based on an instance of the 3-PARTITION problem and allows the player to play that level
 
+Note: Even the simplest of levels like the demoLevel0, which has a total of 6 1's, meaning only 2 groups have to be formed, take some time to complete since the board grows rather quickly.
+
 ## How to play (Linux/WSL (Ubuntu))
 1. Install SDL2 and SDL2 Image Packages:
 

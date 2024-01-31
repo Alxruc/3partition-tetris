@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <vector>
+#include <queue>
 #include <set>
 #include <SDL2/SDL.h>
 
@@ -27,13 +28,14 @@ class Game {
 public:
     std::string fieldToString(const Field& field);
     void init(const char* title, int x, int y, int width, int height, int blocksize, bool fullscreen);
-    void initPiece(SDL_Texture* tex, int type);
+    void initPiece();
+    void initSpecificPiece(int type);
     Piece getFalling();
     void setBuckets(std::vector<Bucket> buckets);
     void handleEvents(Uint32* msecondCounter);
     void update(Uint32* msecondCounter);
     SDL_Texture* loadTexture(const char* filePath);
-    void changeBlockSize(int newBlockSize);
+    void setPieces(std::queue<int> pieces);
     void fillGridBorders(int width, int height, int numberOfBuckets);
     void fillGridHelper(Lock lock);
     void fillGridHelper(Bucket bucket);
@@ -54,6 +56,7 @@ private:
     int width;
     int height;
     Piece fallingPiece;
+    std::queue<int> pieces;
     std::vector<std::vector<Field>> grid;
     void handleLeft(Uint32* msecondCounter);
     void handleRight(Uint32* msecondCounter);

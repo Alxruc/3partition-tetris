@@ -14,27 +14,24 @@ int main() {
 
     game = new Game();
     levelmaker = new LevelMaker("demoLevel1");
+    std::queue<int> pieces = levelmaker->createPieceVector();
+    game->setPieces(pieces);
+
     int T = levelmaker->getT();
     int numOfBuckets = levelmaker->getNumberOfBuckets();
     int blocksize;
     int widthDiv = SCREEN_WIDTH / (numOfBuckets * 4 + 3);
-    int heightDiv = SCREEN_HEIGHT / (5 * T + 25); //extra space at the top
+    int heightDiv = SCREEN_HEIGHT / (5 * T + 30); //extra space at the top
     if(widthDiv < heightDiv) {
         blocksize = widthDiv;
     } else {
         blocksize = heightDiv;
     }
-
-
     game->init("Tetris is hard", SDL_WINDOWPOS_CENTERED, 0, SCREEN_WIDTH, SCREEN_HEIGHT, blocksize, false);
 
-    
-
-    //Load textures
-    SDL_Texture* I_tex = game->loadTexture("textures/I.png");
     SDL_Texture* bucket_tex = game->loadTexture("textures/border_gray.png");
     
-    game->initPiece(I_tex, 1);
+    game->initPiece();
 
     for(int s = 0; s < numOfBuckets; s++) { // Example of how the level will be created
         Bucket bucket(T, s, SCREEN_HEIGHT, SCREEN_WIDTH, numOfBuckets, bucket_tex);
