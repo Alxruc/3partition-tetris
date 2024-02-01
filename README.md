@@ -9,11 +9,12 @@ This program creates a tetris level based on an instance of the 3-PARTITION prob
 Note: Even the simplest of levels like the demoLevel0, which has a total of 6 1's, meaning only 2 groups have to be formed, take some time to complete since the board grows rather quickly.
 
 ## How to play (Linux/WSL (Ubuntu))
-1. Install SDL2 and SDL2 Image Packages:
+1. Install required SDL2 Packages:
 
 ```
 sudo apt-get install libsdl2-dev
 sudo apt-get install libsdl2-image-dev
+sudo apt-get install libsdl2-ttf-dev
 ```
 
 2. Execute Makefile in root directory of this repository
