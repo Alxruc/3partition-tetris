@@ -6,6 +6,7 @@
 #include <queue>
 #include <set>
 #include <SDL2/SDL.h>
+#include <SDL_ttf.h>
 
 #include "../include/piece.hpp"
 #include "../include/bucket.hpp"
@@ -36,6 +37,7 @@ public:
     void update(Uint32* msecondCounter);
     SDL_Texture* loadTexture(const char* filePath);
     void setPieces(std::queue<int> pieces);
+    void setNumberOfLinesToClear(int T);
     void fillGridBorders(int width, int height, int numberOfBuckets);
     void fillGridHelper(Lock lock);
     void fillGridHelper(Bucket bucket);
@@ -51,6 +53,8 @@ public:
 
 private:
     bool isRunning;
+    TTF_Font* font;
+    int numberOfLinesToClear;
     SDL_Window *window;
     SDL_Renderer *renderer;
     int width;

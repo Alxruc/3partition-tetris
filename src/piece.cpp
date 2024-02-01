@@ -106,6 +106,8 @@ Piece::Piece(float x, float y, int rotation, int type, SDL_Texture* texture) {
             blockFour.x = BLOCK_SIZE;
             blockFour.y = BLOCK_SIZE;
             break;
+        case 0: // end of level
+            break;
         default:
             std::cout << "Invalid type in Piece Constructor" << std::endl;
             break;

@@ -1,5 +1,6 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <SDL_ttf.h>
 #include <iostream>
 #include <algorithm>
 #include <sstream>
@@ -21,6 +22,7 @@ SDL_Texture *T_tex;
 std::vector<SDL_Texture *> textures;
 
 int BLOCK_SIZE = constants::DEFAULT_BLOCK_SIZE;
+bool weHavePieces = true;
 
 std::string Game::fieldToString(const Field &field)
 {
@@ -54,11 +56,22 @@ void Game::init(const char *title, int x, int y, int width, int height, int bloc
             std::cout << "Renderer created successfully" << std::endl;
         }
 
+        if (TTF_Init() == -1)
+        {
+            std::cout << "Error initializing TTF" << std::endl;
+        }
+
         isRunning = true;
     }
     else
     {
         isRunning = false;
+    }
+
+    font = TTF_OpenFont("./font/PixelPanel-Black.ttf", 10);
+    if (font == nullptr)
+    {
+        std::cerr << "Error loading font: " << TTF_GetError() << std::endl;
     }
 
     this->width = width;
@@ -77,6 +90,7 @@ void Game::init(const char *title, int x, int y, int width, int height, int bloc
     }
     BLOCK_SIZE = blocksize;
     grid = std::vector<std::vector<Field>>(int(height / BLOCK_SIZE), std::vector<Field>(int(width / BLOCK_SIZE), {0, 0, 0, 0, false, nullptr}));
+
 }
 
 void Game::initPiece()
@@ -87,7 +101,11 @@ void Game::initPiece()
         pieces.pop();
         initSpecificPiece(next);
     }
-    // TODO else: level is over
+    else // level is over
+    {
+        fallingPiece = Piece(0, 0, 0, 0, nullptr);
+        weHavePieces = false;
+    }
 }
 
 void Game::initSpecificPiece(int type)
@@ -279,6 +297,9 @@ void Game::handleEvents(Uint32 *msecondCounter)
         isRunning = false;
         break;
     case SDL_KEYDOWN:
+        if(!weHavePieces) {
+            break;
+        }
         switch (event.key.keysym.sym)
         {
         case SDLK_LEFT:
@@ -363,6 +384,9 @@ void Game::handleEvents(Uint32 *msecondCounter)
 
 void Game::update(Uint32 *msecondCounter)
 {
+    if(!weHavePieces) {
+        return;
+    }
 
     bool collision = false;
 
@@ -457,6 +481,11 @@ void Game::setPieces(std::queue<int> pieces)
     this->pieces = pieces;
 }
 
+void Game::setNumberOfLinesToClear(int T)
+{
+    this->numberOfLinesToClear = (5*T + 18);
+}
+
 bool Game::running()
 {
     return isRunning;
@@ -490,6 +519,7 @@ void Game::fillGridBorders(int width, int height, int numberOfBuckets)
             grid[i][j] = {j * BLOCK_SIZE, i * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE, true, nullptr};
         }
     }
+    setEmptyRow(grid[0]); // save an empty row after the creation of the border for faster row clearing
 }
 
 void Game::fillGridHelper(Lock lock)
@@ -514,6 +544,9 @@ void Game::fillGridHelper(Bucket bucket)
 
 void Game::renderFalling(Piece piece)
 {
+    if(!weHavePieces) {
+        return;
+    }
     std::vector<SDL_Rect> rects = piece.getRects(); // the four blocks that make up our shape
     SDL_Texture *texture = piece.getTexture();
 
@@ -536,6 +569,10 @@ void Game::renderFalling(Piece piece)
 
 void Game::renderAll(int width, int numberOfBuckets)
 {
+    if(!weHavePieces) {
+        didUserWin(renderer, numberOfLinesToClear, width, height, font);
+        return;
+    }
     for (size_t i = 0; i < grid.size(); i++)
     {
         for (size_t j = 0; j < grid[i].size(); j++)
@@ -603,6 +640,8 @@ void Game::renderAll(int width, int numberOfBuckets)
 
     SDL_RenderCopy(renderer, border, &src, &dst);
     SDL_DestroyTexture(border);
+
+    renderScore(renderer, numberOfLinesToClear, width, font);
 }
 
 void Game::clean()

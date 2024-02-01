@@ -6,28 +6,36 @@
 
 Game *game = nullptr;
 LevelMaker *levelmaker = nullptr;
+
+// Change this to the level you want to play
 const int SCREEN_WIDTH = 800;
 const int SCREEN_HEIGHT = 1000; 
+const char* LEVEL_FILE = "demoLevel0";
 
 int main() {
     // TODO at the end: clean this up
-
     game = new Game();
-    levelmaker = new LevelMaker("demoLevel1");
+    levelmaker = new LevelMaker(LEVEL_FILE);
     std::queue<int> pieces = levelmaker->createPieceVector();
     game->setPieces(pieces);
 
     int T = levelmaker->getT();
     int numOfBuckets = levelmaker->getNumberOfBuckets();
+
+    // Here we calculate how large the blocks can be for our game
+    // If we have a larger level we shrink the blocks so that everything can fit within
+    // the desired dimensions
     int blocksize;
     int widthDiv = SCREEN_WIDTH / (numOfBuckets * 4 + 3);
     int heightDiv = SCREEN_HEIGHT / (5 * T + 30); //extra space at the top
+
     if(widthDiv < heightDiv) {
         blocksize = widthDiv;
     } else {
         blocksize = heightDiv;
     }
     game->init("Tetris is hard", SDL_WINDOWPOS_CENTERED, 0, SCREEN_WIDTH, SCREEN_HEIGHT, blocksize, false);
+    game->setNumberOfLinesToClear(T);
 
     SDL_Texture* bucket_tex = game->loadTexture("textures/border_gray.png");
     
@@ -47,13 +55,10 @@ int main() {
     Uint32 lastFrame = SDL_GetTicks();
 
     while(game->running()) {
-
         Uint32 currentFrameTime = SDL_GetTicks();
         Uint32 deltaTime = currentFrameTime - lastFrame;
         lastFrame = currentFrameTime;
-
         msecond += deltaTime;
-
 
         game->handleEvents(msecondCounter);
         game->update(msecondCounter);

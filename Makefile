@@ -1,6 +1,6 @@
 CC = g++
 CFLAGS = -std=c++11 -Wall
-SDL_FLAGS = $(shell sdl2-config --cflags --libs) -lSDL2_image
+SDL_FLAGS = $(shell sdl2-config --cflags --libs) -lSDL2_image -lSDL2_ttf
 
 SRC_DIR = src
 OBJ_DIR = obj
