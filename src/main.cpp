@@ -17,7 +17,9 @@ int main() {
     game = new Game();
     levelmaker = new LevelMaker(LEVEL_FILE);
     std::queue<int> pieces = levelmaker->createPieceVector();
-    game->setPieces(pieces);
+    std::queue<int> test;
+    test.push(pieces.front());
+    game->setPieces(test);
 
     int T = levelmaker->getT();
     int numOfBuckets = levelmaker->getNumberOfBuckets();
@@ -53,8 +55,9 @@ int main() {
     Uint32* msecondCounter = &msecond;
     
     Uint32 lastFrame = SDL_GetTicks();
+    int i = 1;
 
-    while(game->running()) {
+    while(i > 0) {
         Uint32 currentFrameTime = SDL_GetTicks();
         Uint32 deltaTime = currentFrameTime - lastFrame;
         lastFrame = currentFrameTime;
@@ -68,6 +71,7 @@ int main() {
         game->renderFalling(fallingPiece);   
         game->renderAll(SCREEN_WIDTH, numOfBuckets);
         game->present();
+        i--;
     }
 
     game->clean();

@@ -151,7 +151,7 @@ void Game::handleLeft(Uint32 *msecondCounter)
     bool blocked = false;
 
     std::vector<SDL_Rect> fallingRects = fallingPiece.getRects();
-    for (int i = 0; i < 4; i++)
+    for (size_t i = 0; i < fallingRects.size(); i++)
     {
         SDL_Rect fallingRect = fallingRects[i];
         // get the absolute coords of the rects
@@ -187,7 +187,7 @@ void Game::handleRight(Uint32 *msecondCounter)
     bool blocked = false;
     std::vector<SDL_Rect> fallingRects = fallingPiece.getRects();
 
-    for (int i = 0; i < 4; i++)
+    for (size_t i = 0; i < fallingRects.size(); i++)
     {
         SDL_Rect fallingRect = fallingRects[i];
         // get the absolute coords of the rects
@@ -224,7 +224,7 @@ void Game::handleDown(Uint32 *msecondCounter)
     bool blocked = false;
     std::vector<SDL_Rect> fallingRects = fallingPiece.getRects();
 
-    for (int i = 0; i < 4; i++)
+    for (size_t i = 0; i < fallingRects.size(); i++)
     {
         SDL_Rect fallingRect = fallingRects[i];
         // get the absolute coords of the rects
@@ -260,7 +260,7 @@ void Game::handleRotate(Uint32 *msecondCounter)
     bool blocked = false;
 
     std::array<int, 8> coords = fallingPiece.coordinatesOfCWRotation();
-    for (int i = 0; i < 4; i++)
+    for (size_t i = 0; i < 4; i++) // fallingPiece always has 4 rects
     {
         int x = fallingPiece.getX() + coords[i * 2];
         int y = fallingPiece.getY() + coords[i * 2 + 1];
@@ -389,10 +389,11 @@ void Game::update(Uint32 *msecondCounter)
     }
 
     bool collision = false;
+    std::vector<SDL_Rect> fallingRects = fallingPiece.getRects();
 
-    for (int j = 0; j < 4; j++)
+    for (size_t i = 0; i < fallingRects.size(); i++)
     {
-        SDL_Rect fallingRect = fallingPiece.getRects()[j];
+        SDL_Rect fallingRect = fallingRects[i];
 
         // get the absolute coords of the rects
         float fY = fallingPiece.getY() + fallingRect.y;
@@ -432,7 +433,7 @@ void Game::update(Uint32 *msecondCounter)
 
             // update the grid
             std::vector<SDL_Rect> fallingRects = fallingPiece.getRects();
-            for (int i = 0; i < 4; i++)
+            for (size_t i = 0; i < fallingRects.size(); i++)
             {
                 SDL_Rect fallingRect = fallingRects[i];
                 // get the absolute coords of the rects
@@ -550,7 +551,7 @@ void Game::renderFalling(Piece piece)
     std::vector<SDL_Rect> rects = piece.getRects(); // the four blocks that make up our shape
     SDL_Texture *texture = piece.getTexture();
 
-    for (int i = 0; i < 4; i++)
+    for (size_t i = 0; i < rects.size(); i++)
     {
         SDL_Rect rect = rects[i];
         SDL_Rect src;
@@ -652,6 +653,8 @@ void Game::clean()
     {
         SDL_DestroyTexture(texture);
     }
+    TTF_CloseFont(font);
+    TTF_Quit();
     SDL_Quit();
     std::cout << "Game Quit" << std::endl;
 }

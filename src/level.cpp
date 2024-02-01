@@ -57,7 +57,8 @@ void clearRows(std::vector<std::vector<Field>> *gridPtr, std::set<int> filledRow
 }
 
 void didUserWin(SDL_Renderer *renderer, int numberOfLinesToClear, int width, int height, TTF_Font* font) {
-    TTF_SetFontSize(font, 40);
+    TTF_CloseFont(font);
+    font = TTF_OpenFont("./font/PixelPanel-Black.ttf", 40);
     if(score >= numberOfLinesToClear) {
         SDL_Color color = {255, 255, 255};
         std::stringstream ss;

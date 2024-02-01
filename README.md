@@ -34,4 +34,4 @@ Since each level is structured with the help of a 3-PARTITION instance, two thin
 
 - In the second line you add your T. In the 3-PARTITION Problem you check if we can split our integers into groups of 3, so that all equal T. **Your T should be divisible by 4**
 
-Demo levels are in the partitionLevels folder
+Demo levels are in the partitionLevels folder. Change the level by editing LEVEL_FILE in main.cpp
