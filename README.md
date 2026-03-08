@@ -1,12 +1,12 @@
 # 3partition-tetris
 
-Work in progress
-
 A tetris clone based on the 3-PARTITION reduction layed out in: Breukelaar, R., Demaine, E. D., Hohenberger, S., Hoogeboom, H. J., Kosters, W. A., & Liben-Nowell, D. (2004). Tetris is hard, even to approximate. International Journal of Computational Geometry & Applications, 14(01n02), 41-68.
 
 This program creates a tetris level based on an instance of the 3-PARTITION problem and allows the player to play that level
 
 Note: Even the simplest of levels like the demoLevel0, which has a total of 6 1's, meaning only 2 groups have to be formed, take some time to complete since the board grows rather quickly.
+
+<img src="example.png" width="400">
 
 ## How to play (Linux/WSL (Ubuntu))
 1. Install required SDL2 Packages:

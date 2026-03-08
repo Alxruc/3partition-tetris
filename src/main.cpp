@@ -13,7 +13,6 @@ const int SCREEN_HEIGHT = 1000;
 const char* LEVEL_FILE = "demoLevel0";
 
 int main() {
-    // TODO at the end: clean this up
     game = new Game();
     levelmaker = new LevelMaker(LEVEL_FILE);
     std::queue<int> pieces = levelmaker->createPieceVector();
